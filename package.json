@@ -3,12 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
-  "engines": { "node": ">=20" },
-  "scripts": { "start": "node local-server.cjs" },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node local-server.cjs"
+  },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
-    "express": "^4.21.2",
-    "ioredis": "^5.6.1",
+    "express": "^4.22.3",
+    "ioredis": "^5.11.1",
     "socket.io": "^4.8.1"
-  }
+  },
+  "description": "Meme Machine is a mobile-friendly party game for 2–8 players. In Caption rounds, everyone picks one of five funny responses to the same prompt, then votes for the funniest submitted response. Don't Copy Me rounds use a secret machine pick and themed tiles, now drawn from 32 categories. The caption prompt deck contains 47 scenarios. One person hosts a room and shares its four-letter code or same-Wi-Fi invite address.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Charan3047/Meme_Machine.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Charan3047/Meme_Machine/issues"
+  },
+  "homepage": "https://github.com/Charan3047/Meme_Machine#readme"
 }

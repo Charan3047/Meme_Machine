@@ -14,8 +14,7 @@ if (redisUrl) {
   io.adapter(createAdapter(pub, sub));
 }
 app.use(express.static(path.join(__dirname, 'public')));
-// The supplied starter keeps index.html at the project root. Serve it explicitly
-// so a fresh unzip works without first moving files into a public/ folder.
+// Local fallback for the static homepage; Vercel serves public/ through its CDN.
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/api/health', (_req, res) => res.json({ ok: true, game: 'meme-machine' }));
 

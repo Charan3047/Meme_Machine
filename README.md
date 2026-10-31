@@ -13,22 +13,36 @@ Meme Machine is a mobile-friendly party game for 2–8 players. In Caption round
 
 The service check is at `http://localhost:3000/api/health` and should return `{"ok":true,"game":"meme-machine"}`.
 
-## Deploy with GitHub and Vercel
+## Deploy on GitHub and Vercel
 
-The Vercel setup uses a Socket.IO WebSocket function and Redis for shared room state and message delivery. Rooms are saved in Redis for up to 24 hours. Keep `REDIS_URL` private; `.env*` files and `.vercel/` are ignored by Git.
+The Vercel deployment uses a Socket.IO WebSocket function plus Redis for room state and cross-instance messages. Room records expire after 24 hours. `.env*`, `.vercel/`, and the separate `express-upstash/` tutorial sample are excluded from Git.
 
-1. Create an empty GitHub repository named `meme-machine`.
-2. In a terminal opened in this folder, run `git init`, `git add .`, `git commit -m "Prepare Meme Machine for hosting"`, and `git branch -M main`.
-3. Add your GitHub repository as `origin` with `git remote add origin https://github.com/YOUR-NAME/meme-machine.git`, then run `git push -u origin main`.
-4. In Vercel, import that GitHub repository. Keep the project root as this folder. The included `vercel.json` sets `public` as the static output and configures the Socket.IO function.
-5. In Vercel's Marketplace/Storage, add a Redis database (Upstash Redis works) and make its `REDIS_URL` available to Production, Preview, and Development deployments.
-6. Confirm Fluid Compute is enabled for the project, then deploy. Vercel's WebSocket connections have a duration limit; the game reconnects and reloads room state from Redis when a connection closes.
-7. Open the deployed URL on two devices, create a room, join by code, and finish a short match.
+### Push the current project to GitHub
 
-The WebSocket function is `/api/socket-io`; the health check is `/api/health`. For local play, Redis is optional and the app uses in-memory rooms. For Vercel, `REDIS_URL` is required.
+This folder is already connected to the `Charan3047/Meme_Machine` GitHub repository on the `main` branch. From the VS Code terminal opened in this folder:
 
-## Phase 1 playtest
+1. Run `git status` and confirm the changed files are the Meme Machine project files.
+2. Run `git add -A`.
+3. Run `git commit -m "Prepare Meme Machine for Vercel"`.
+4. Run `git push origin main`.
+
+Do not add a second GitHub remote or run `git init` again. The `express-upstash/` folder is an unrelated tutorial sample and is ignored.
+
+### Import and configure the Vercel project
+
+1. In Vercel, choose **Add New → Project** and import the existing `Charan3047/Meme_Machine` repository.
+2. Set the project root to the repository root. Use the **Other** framework preset if Vercel asks; do not select the nested `express-upstash/` sample.
+3. Let Vercel use the included `vercel.json`: static files are in `public/`, and the real-time function is `api/socket-io.js`. The default install command is `npm install`; there is no separate build command.
+4. Create and connect an Upstash Redis database through Vercel's Marketplace/Storage.
+5. Open the database's **Connect → TCP** section and copy its `rediss://default:...` connection string. In **Project Settings → Environment Variables**, add `REDIS_URL` with that entire value. Select Production, and Preview if you will test preview deployments. Do not paste the URL into a source file or commit it.
+6. Save the variable and deploy (or redeploy if the project was already deployed). WebSockets require Fluid Compute, which is enabled by default on new Vercel projects. This project sets the Socket.IO function's `maxDuration` to 300 seconds; Vercel closes a WebSocket when that duration ends, and the client reconnects and rejoins through Redis.
+7. Check `https://YOUR-DEPLOYMENT/api/health`. It should return `{"ok":true,"game":"meme-machine"}`.
+8. Open the deployed game on two devices. Create a room on one, join from the other, then play a short match. This checks both the WebSocket and the shared Redis room state.
+
+The function route is `/api/socket-io`, with Socket.IO at `/api/socket-io/socket.io`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
+
+## Multiplayer playtest checklist
 
 Use at least three phones if possible; four players gives a better test of the caption vote. Check room creation and joining, host start, selecting one of five captions, voting, scoring, the expanded Don't Copy Me categories, reconnecting after briefly turning Wi-Fi off, and host transfer after the host closes the tab. For a two-player check, confirm a bot caption appears in Caption rounds.
 
-Without `REDIS_URL`, local room state is in memory and restarting the server clears active rooms. On Vercel, Redis keeps active rooms consistent across function instances and restarts.
+Without `REDIS_URL`, local room state is in memory and restarting the server clears active rooms. On Vercel, Redis keeps active rooms consistent across function instances and connection reconnects.

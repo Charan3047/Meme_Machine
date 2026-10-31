@@ -89,7 +89,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const AV=['😎','🤪','👻','🦊','🐼','🦄','🤖','🐸','🔥','👽','🐯','🧋'],ls=localStorage;
 const ME=ls.cc_id||(ls.cc_id=Math.random().toString(36).slice(2,12));
 let S=null,av=ls.cc_a||AV[0],nm=ls.cc_n||'',rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
-let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1';
+let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1',phaseFallback=null;
 const so=io(location.origin,{path:'/api/socket-io',addTrailingSlash:false,transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
 const priorHistoryState=history.state&&typeof history.state==='object'?history.state:{};
 history.replaceState({...priorHistoryState,memeMachineView:'home'},'',location.href);
@@ -110,18 +110,25 @@ const SND={
 addEventListener('pointerdown',()=>{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()});
 
 /* ---------- network ---------- */
-so.on('connect',()=>{const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()})});
+so.on('connect',()=>{const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()});if(S)draw()});
+so.on('disconnect',()=>{if(S){flash('Connection interrupted. Reconnecting…');draw()}});
 so.on('in',d=>{
  sessionStorage.cc_c=d.code;rc=d.code;
  const st=history.state||{};
  if(st.memeMachineView!=='room'||st.room!==d.code)history.pushState({memeMachineView:'room',room:d.code},'',roomHref(d.code));
 });
 so.on('err',m=>{if(!S)sessionStorage.removeItem('cc_c');flash(m)});
-so.on('s',s=>{if(history.state?.memeMachineView==='home')return;S=s;onPhase();draw()});
+so.on('s',s=>{
+ if(history.state?.memeMachineView==='home')return;
+ S=s;onPhase();
+ if(s.ph==='pick')pk=s.minePick||'';
+ schedulePhaseFallback(s);draw();
+});
 
 function showHome(){
  const code=S&&S.code||sessionStorage.cc_c;
  if(code&&so.connected)so.emit('leave');
+ clearTimeout(phaseFallback);phaseFallback=null;
  sessionStorage.removeItem('cc_c');S=null;sel=-1;pk='';
  rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
  draw();
@@ -152,6 +159,14 @@ function onPhase(){
  const k=S.round+S.ph;if(k===lastKey)return;lastKey=k;sel=-1;pk='';
  if(S.ph==='results'){SND.drum();setTimeout(result,1200)}else if(S.ph==='final')SND.win();
 }
+function schedulePhaseFallback(s){
+ clearTimeout(phaseFallback);phaseFallback=null;
+ if(!s.t||!so.connected)return;
+ const round=s.round,phase=s.ph;
+ phaseFallback=setTimeout(()=>{
+  if(so.connected&&S&&S.round===round&&S.ph===phase)so.emit('tick');
+ },s.t+700);
+}
 function result(){
  const R=S.res||{},dl=R.dl||{},d=dl[ME]||0;
  if(S.type==='D'&&R.picks){
@@ -179,7 +194,7 @@ function home(){return `<h1 class="logo"><img src="/mascot.png" alt=""><span>Mem
 function game(){
  const me=S.pl.find(p=>p.id===ME)||{},host=S.host===ME,on=S.pl.filter(p=>p.on).length,dn=S.pl.filter(p=>p.d).length,ph=S.ph;
  let h='';
- if(ph!=='lobby'&&ph!=='final')h+=`<div class="top"><span class="chip">Round ${S.round}/${S.total}${S.mult>1?' · double points':''}</span><span class="chip">${me.a} ${me.s}</span><button class="mu" onclick="mut()" aria-label="Toggle sound">${mute?'🔇':'🔊'}</button></div>`+bar();
+ if(ph!=='lobby'&&ph!=='final')h+=`<div class="top"><span class="chip">Round ${S.round}/${S.total}${S.mult>1?' · double points':''}</span><span class="chip">${me.a} ${me.s}</span>${so.connected?'':'<span class="chip">Reconnecting…</span>'}<button class="mu" onclick="mut()" aria-label="Toggle sound">${mute?'🔇':'🔊'}</button></div>`+bar();
  if(ph==='lobby'){
   h+=`<h1 class="logo"><img src="/mascot.png" alt=""><span>Meme<br>Machine</span></h1><div class="c ctr"><small>Room code</small><div class="code">${S.code}</div><button class="b blue" onclick="inv()">Copy invite link</button></div>
   <div class="c"><b>Players ${S.pl.length}/8</b><div class="pls">${S.pl.map(p=>`<span class="pl ${p.on?'':'off'}">${p.a} ${esc(p.n)}${p.id===S.host?' 👑':''}</span>`).join('')}</div></div>

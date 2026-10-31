@@ -178,7 +178,10 @@ function view(r, pid) {
   };
   if (r.type === 'C' && ['intro', 'write', 'vote', 'results'].includes(r.ph)) v.prompt = r.prompt;
   if (r.type === 'C' && ['intro', 'write'].includes(r.ph)) { v.choices = P[r.pr][2]; if (r.ph === 'write') v.mineCap = r.caps[pid]; }
-  if (r.type === 'D' && ['intro', 'pick', 'results'].includes(r.ph)) { v.cat = r.cat; v.opts = r.opts.map(o => ({ n: o.n, e: o.e })); }
+  if (r.type === 'D' && ['intro', 'pick', 'results'].includes(r.ph)) {
+    v.cat = r.cat; v.opts = r.opts.map(o => ({ n: o.n, e: o.e }));
+    if (r.ph === 'pick') v.minePick = r.picks[pid] || null;
+  }
   if (r.ph === 'vote') {
     v.en = r.en.map(e => ({ k: e.k, t: e.t }));
     v.mine = r.en.filter(e => (e.authors || (e.by ? [e.by] : [])).includes(pid)).map(e => e.k);
@@ -214,7 +217,7 @@ function next(r) {
   r.caps = {}; r.picks = {}; r.votes = {};
   if (r.type === 'C') { r.pr = r.pq[r.ci++ % P.length]; r.prompt = P[r.pr][0]; }
   else { r.cat = r.cq[r.di++ % r.cq.length]; r.opts = CATS[r.cat]; r.secret = wpick(r.opts); }
-  go(r, 'intro', 4000);
+  go(r, 'intro', 1200);
 }
 function toVote(r) {
   const submissions = Object.entries(r.caps)
@@ -232,7 +235,7 @@ function toVote(r) {
   }
   r.en = shuf([...grouped.values()]).map((e, k) => ({ ...e, authors: shuf(e.authors), k }));
   if (r.en.length < 2) { r.res = { en: [], dl: {} }; return go(r, 'results', 5000); }
-  go(r, 'vote', 15000);
+  go(r, 'vote', 12000);
 }
 function tally(r) {
   const dl = {}; Object.keys(r.p).forEach(i => dl[i] = 0);
@@ -253,18 +256,18 @@ function tally(r) {
   for (const [pid, k] of Object.entries(r.votes)) if (mx > 0 && cnt[k] === mx) dl[pid] += 5; // good taste
   for (const i in dl) { dl[i] *= r.mult; r.p[i].s += dl[i]; }
   r.res = { en: r.en.map((e, i) => ({ k: e.k, t: e.t, by: e.by, authors: e.authors || (e.by ? [e.by] : []), bot: !!e.bot || (!e.authors && !e.by), v: cnt[i], w: mx > 0 && cnt[i] === mx })), dl };
-  go(r, 'results', 9000);
+  go(r, 'results', 5000);
 }
 function reveal(r) {
   const dl = {};
   for (const p of Object.values(r.p)) { const k = r.picks[p.id]; dl[p.id] = !k ? 0 : (k === r.secret ? -10 : 20) * r.mult; p.s += dl[p.id]; }
   r.res = { secret: r.secret, picks: { ...r.picks }, dl };
-  go(r, 'results', 10000);
+  go(r, 'results', 5000);
 }
 
 function advance(r) {
   const phase = r.ph; r.end = 0;
-  if (phase === 'intro') return r.type === 'C' ? go(r, 'write', 30000) : go(r, 'pick', 15000);
+  if (phase === 'intro') return r.type === 'C' ? go(r, 'write', 20000) : go(r, 'pick', 12000);
   if (phase === 'write') return toVote(r);
   if (phase === 'vote') return tally(r);
   if (phase === 'pick') return reveal(r);
@@ -334,6 +337,10 @@ io.on('connection', s => {
   s.on('pick', withPlayerRoom(s, (r, p, n) => {
     if (r.ph !== 'pick' || !r.opts.some(o => o.n === n)) return;
     r.picks[p.id] = n; r.d.add(p.id); push(r); early(r);
+  }));
+  s.on('tick', withPlayerRoom(s, r => {
+    if (!r.end || Date.now() < r.end) return;
+    clearTimeout(r.tm); r.tm = 0; advance(r);
   }));
   s.on('again', withPlayerRoom(s, (r, p) => {
     if (r.host !== p.id || r.ph !== 'final') return;

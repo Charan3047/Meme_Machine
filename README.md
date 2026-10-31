@@ -41,6 +41,8 @@ Do not add a second GitHub remote or run `git init` again. The `express-upstash/
 
 The function route and Socket.IO endpoint are both `/api/socket-io`; the Socket.IO browser client is served as the static file `/socket.io.js`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
 
+After joining or creating a room, its code is added to the URL history. Browser Back returns to the home screen and leaves the room; Forward rejoins it while the room is still active.
+
 ## Multiplayer playtest checklist
 
 Use at least three phones if possible; four players gives a better test of the caption vote. Check room creation and joining, host start, selecting one of five captions, voting, scoring, the expanded Don't Copy Me categories, reconnecting after briefly turning Wi-Fi off, and host transfer after the host closes the tab. For a two-player check, confirm a bot caption appears in Caption rounds.

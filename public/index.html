@@ -91,6 +91,9 @@ const ME=ls.cc_id||(ls.cc_id=Math.random().toString(36).slice(2,12));
 let S=null,av=ls.cc_a||AV[0],nm=ls.cc_n||'',rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
 let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1';
 const so=io(location.origin,{path:'/api/socket-io',addTrailingSlash:false,transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
+const priorHistoryState=history.state&&typeof history.state==='object'?history.state:{};
+history.replaceState({...priorHistoryState,memeMachineView:'home'},'',location.href);
+const roomHref=code=>{const u=new URL(location.href);u.searchParams.set('room',code);return u.pathname+u.search+u.hash};
 
 /* ---------- sounds (synthesized, so nothing to license) ---------- */
 const tone=(f,d,t='square',v=.2,at=0,f2)=>{if(!AC||mute)return;const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;o.type=t;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(AC.destination);o.start(s);o.stop(s+d)};
@@ -108,9 +111,28 @@ addEventListener('pointerdown',()=>{AC=AC||new(window.AudioContext||window.webki
 
 /* ---------- network ---------- */
 so.on('connect',()=>{const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()})});
-so.on('in',d=>{sessionStorage.cc_c=d.code});
+so.on('in',d=>{
+ sessionStorage.cc_c=d.code;rc=d.code;
+ const st=history.state||{};
+ if(st.memeMachineView!=='room'||st.room!==d.code)history.pushState({memeMachineView:'room',room:d.code},'',roomHref(d.code));
+});
 so.on('err',m=>{if(!S)sessionStorage.removeItem('cc_c');flash(m)});
-so.on('s',s=>{S=s;onPhase();draw()});
+so.on('s',s=>{if(history.state?.memeMachineView==='home')return;S=s;onPhase();draw()});
+
+function showHome(){
+ const code=S&&S.code||sessionStorage.cc_c;
+ if(code&&so.connected)so.emit('leave');
+ sessionStorage.removeItem('cc_c');S=null;sel=-1;pk='';
+ rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
+ draw();
+}
+addEventListener('popstate',e=>{
+ const st=e.state||{};
+ if(st.memeMachineView==='room'&&st.room){
+  rc=String(st.room).toUpperCase();nm=nm||ls.cc_n||'';sessionStorage.cc_c=rc;
+  if(so.connected)so.emit('join',{code:rc,...who()});
+ }else showHome();
+});
 
 function flash(m){const t=$('toast');t.textContent=m;t.className='show';setTimeout(()=>t.className='',2600)}
 function setAv(i){av=AV[i];ls.cc_a=av;draw()}
@@ -123,7 +145,7 @@ function pick(i){pk=S.opts[i].n;so.emit('pick',pk);draw()}
 function mut(){mute=!mute;ls.m=mute?'1':'0';draw()}
 function inv(){navigator.clipboard.writeText(location.origin+location.pathname+'?room='+S.code).then(()=>flash('Invite link copied'))}
 function share(){const o=[...S.pl].sort((a,b)=>b.s-a.s),m=S.pl.find(p=>p.id===ME)||{},t=`${o[0].a} ${o[0].n} won Meme Machine with ${o[0].s} points! I scored ${m.s}. ${location.origin}`;navigator.share?navigator.share({text:t}).catch(()=>{}):navigator.clipboard.writeText(t).then(()=>flash('Result copied'))}
-function howToPlay(){return `<details class="c how-to" id="how-to"><summary>How to play</summary><h3>Caption round</h3><p>Pick 1 of 5 funny responses to the prompt. Then vote for the funniest response; you can't vote for your own.</p><h3>Don't Copy Me</h3><p>Pick a tile. Match the machine's secret tile and lose 10 points; pick a different tile and earn 20. No pick earns 0.</p><h3>Scoring</h3><p>Caption: +20 per vote, +10 for a top caption, +20 when 2 or more votes all go to one caption, and +5 for voting for a top caption. The final round is worth double.</p><h3>Win the match</h3><p>Play 4, 6, or 8 rounds. The highest score wins. In a 2-player game, a bot caption joins Caption rounds.</p></details>`}
+function howToPlay(){return `<details class="c how-to" id="how-to"><summary>How to play</summary><h3>Caption round</h3><p>Pick 1 of 5 funny responses to the prompt. Then vote for the funniest response; you can't vote for your own. Identical picks appear once, and their authors share caption points.</p><h3>Don't Copy Me</h3><p>Pick a tile. Match the machine's secret tile and lose 10 points; pick a different tile and earn 20. No pick earns 0.</p><h3>Scoring</h3><p>Caption: +20 per vote, +10 for a top caption, +20 when 2 or more votes all go to one caption, and +5 for voting for a top caption. Points for identical captions are shared between their authors. The final round is worth double.</p><h3>Win the match</h3><p>Play 4, 6, or 8 rounds. The highest score wins. In a 2-player game, a bot caption joins Caption rounds.</p></details>`}
 
 /* ---------- sound cues on phase change ---------- */
 function onPhase(){
@@ -142,6 +164,11 @@ function result(){
 const bar=()=>S.t?`<div class="bar" aria-hidden="true"><i style="animation-duration:${S.t}ms"></i></div>`:'';
 const board=()=>[...S.pl].sort((a,b)=>b.s-a.s).map(p=>`<div class="row ${p.id===ME?'me':''}"><span>${p.a} ${esc(p.n)}</span><b>${p.s}</b></div>`).join('');
 const nameOf=id=>{const p=S.pl.find(p=>p.id===id);return p?p.a+' '+esc(p.n):'Someone'};
+const captionAuthors=e=>{
+ const ids=e.authors||(e.by?[e.by]:[]),names=ids.map(nameOf);
+ if(e.bot||(!e.authors&&!e.by))names.push('🤖 The bot');
+ return names.join(', ')||'🤖 The bot';
+};
 
 function home(){return `<h1 class="logo"><img src="/mascot.png" alt=""><span>Meme<br>Machine</span></h1><p class="sub">Be funny. Beat the machine. 2 to 8 players, one phone each.</p>
 <div class="c"><b>Your look</b><div class="avs">${AV.map((a,i)=>`<button class="av ${a===av?'on':''}" onclick="setAv(${i})" aria-label="Avatar ${a}">${a}</button>`).join('')}</div>
@@ -173,7 +200,7 @@ function game(){
  }else if(ph==='results'){
   const R=S.res||{};
   if(S.type==='C'){
-   h+=R.en&&R.en.length?[...R.en].sort((a,b)=>b.v-a.v).map((e,i)=>`<div class="c pop" style="animation-delay:${1.2+i*.4}s"><div>${esc(e.t)}</div><small>${e.by?nameOf(e.by):'🤖 The bot'} · ${e.v} vote${e.v==1?'':'s'}${e.w?' · 👑 winner':''}</small></div>`).join(''):`<div class="c ctr">Not enough captions this round. Next one is coming.</div>`;
+   h+=R.en&&R.en.length?[...R.en].sort((a,b)=>b.v-a.v).map((e,i)=>`<div class="c pop" style="animation-delay:${1.2+i*.4}s"><div>${esc(e.t)}</div><small>${captionAuthors(e)} · ${e.v} vote${e.v==1?'':'s'}${e.w?' · 👑 winner':''}</small></div>`).join(''):`<div class="c ctr">Not enough captions this round. Next one is coming.</div>`;
    h+=`<div class="c">${[...S.pl].sort((a,b)=>b.s-a.s).map(p=>{const d=(R.dl||{})[p.id]||0;return `<div class="row ${p.id===ME?'me':''}"><span>${p.a} ${esc(p.n)}</span><span><b>${p.s}</b> ${d?`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`:''}</span></div>`}).join('')}</div>`;
   }else{
    const op=n=>S.opts.find(o=>o.n===n)||{e:''};

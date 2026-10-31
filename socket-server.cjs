@@ -179,7 +179,10 @@ function view(r, pid) {
   if (r.type === 'C' && ['intro', 'write', 'vote', 'results'].includes(r.ph)) v.prompt = r.prompt;
   if (r.type === 'C' && ['intro', 'write'].includes(r.ph)) { v.choices = P[r.pr][2]; if (r.ph === 'write') v.mineCap = r.caps[pid]; }
   if (r.type === 'D' && ['intro', 'pick', 'results'].includes(r.ph)) { v.cat = r.cat; v.opts = r.opts.map(o => ({ n: o.n, e: o.e })); }
-  if (r.ph === 'vote') { v.en = r.en.map(e => ({ k: e.k, t: e.t })); v.mine = r.en.filter(e => e.by === pid).map(e => e.k); }
+  if (r.ph === 'vote') {
+    v.en = r.en.map(e => ({ k: e.k, t: e.t }));
+    v.mine = r.en.filter(e => (e.authors || (e.by ? [e.by] : [])).includes(pid)).map(e => e.k);
+  }
   if (r.ph === 'results') v.res = r.res;
   return v;
 }
@@ -214,24 +217,42 @@ function next(r) {
   go(r, 'intro', 4000);
 }
 function toVote(r) {
-  let en = Object.entries(r.caps).filter(([, choice]) => Number.isInteger(choice) && P[r.pr][2][choice]).map(([by, choice]) => ({ by, t: P[r.pr][2][choice] }));
-  if (Object.keys(r.p).length === 2) en.push({ by: null, t: P[r.pr][1] }); // bot caption keeps 2-player rounds votable
-  r.en = shuf(en).map((e, k) => ({ ...e, k }));
+  const submissions = Object.entries(r.caps)
+    .filter(([, choice]) => Number.isInteger(choice) && P[r.pr][2][choice])
+    .map(([by, choice]) => ({ by, t: P[r.pr][2][choice] }));
+  if (Object.keys(r.p).length === 2) submissions.push({ by: null, t: P[r.pr][1] }); // bot caption keeps 2-player rounds votable
+
+  // Identical choices become one anonymous voting option. Their authors share its caption points.
+  const grouped = new Map();
+  for (const submission of submissions) {
+    let group = grouped.get(submission.t);
+    if (!group) { group = { t: submission.t, authors: [], bot: false }; grouped.set(submission.t, group); }
+    if (submission.by) group.authors.push(submission.by);
+    else group.bot = true;
+  }
+  r.en = shuf([...grouped.values()]).map((e, k) => ({ ...e, authors: shuf(e.authors), k }));
   if (r.en.length < 2) { r.res = { en: [], dl: {} }; return go(r, 'results', 5000); }
   go(r, 'vote', 15000);
 }
 function tally(r) {
   const dl = {}; Object.keys(r.p).forEach(i => dl[i] = 0);
   const voters = Object.keys(r.votes).length, cnt = r.en.map(e => Object.values(r.votes).filter(k => k === e.k).length), mx = Math.max(...cnt);
+  const share = (points, authors) => {
+    if (!authors.length) return;
+    const each = Math.floor(points / authors.length), extra = points % authors.length;
+    authors.forEach((id, i) => { if (dl[id] !== undefined) dl[id] += each + (i < extra ? 1 : 0); });
+  };
   r.en.forEach((e, i) => {
-    if (!e.by) return;
-    dl[e.by] += cnt[i] * 20;                                   // +20 per vote
-    if (mx > 0 && cnt[i] === mx) dl[e.by] += 10;               // round winner
-    if (mx >= 2 && cnt[i] === voters) dl[e.by] += 20;          // clean sweep
+    const authors = e.authors || (e.by ? [e.by] : []);
+    if (!authors.length) return;
+    let points = cnt[i] * 20;                                  // +20 per vote
+    if (mx > 0 && cnt[i] === mx) points += 10;                 // round winner
+    if (mx >= 2 && cnt[i] === voters) points += 20;           // clean sweep
+    share(points, authors);
   });
   for (const [pid, k] of Object.entries(r.votes)) if (mx > 0 && cnt[k] === mx) dl[pid] += 5; // good taste
   for (const i in dl) { dl[i] *= r.mult; r.p[i].s += dl[i]; }
-  r.res = { en: r.en.map((e, i) => ({ k: e.k, t: e.t, by: e.by, v: cnt[i], w: mx > 0 && cnt[i] === mx })), dl };
+  r.res = { en: r.en.map((e, i) => ({ k: e.k, t: e.t, by: e.by, authors: e.authors || (e.by ? [e.by] : []), bot: !!e.bot || (!e.authors && !e.by), v: cnt[i], w: mx > 0 && cnt[i] === mx })), dl };
   go(r, 'results', 9000);
 }
 function reveal(r) {
@@ -263,6 +284,7 @@ io.on('connection', s => {
     let p = r.p[id];
     if (p) { p.sid = s.id; p.on = true; }
     else r.p[id] = { id, n, a: AV.includes(a) ? a : AV[0], s: 0, on: true, sid: s.id };
+    if (!r.host || !r.p[r.host] || !r.p[r.host].on) r.host = id;
     s.data = { c: r.code, i: id }; s.emit('in', { code: r.code, id }); push(r); ensureTimer(r);
   };
 
@@ -306,7 +328,7 @@ io.on('connection', s => {
   }));
   s.on('vote', withPlayerRoom(s, (r, p, k) => {
     if (r.ph !== 'vote') return; const e = r.en.find(e => e.k === k);
-    if (!e || e.by === p.id) return;
+    if (!e || (e.authors || (e.by ? [e.by] : [])).includes(p.id)) return;
     r.votes[p.id] = k; r.d.add(p.id); push(r); early(r);
   }));
   s.on('pick', withPlayerRoom(s, (r, p, n) => {
@@ -317,6 +339,22 @@ io.on('connection', s => {
     if (r.host !== p.id || r.ph !== 'final') return;
     reset(r); go(r, 'lobby', 0);
   }));
+  s.on('leave', () => {
+    const code = s.data && s.data.c, id = s.data && s.data.i;
+    if (!code || !id) return;
+    s.data = {};
+    withRoomLock(code, r => {
+      const p = r && r.p[id];
+      if (!p || p.sid !== s.id) return;
+      p.on = false;
+      if (r.ph === 'lobby') delete r.p[id];
+      if (r.host === id) {
+        const nextHost = Object.values(r.p).find(q => q.on);
+        r.host = nextHost ? nextHost.id : null;
+      }
+      push(r); early(r);
+    }).catch(err => s.emit('err', err.message || 'Could not leave the room cleanly.'));
+  });
   s.on('disconnect', withPlayerRoom(s, (r, p) => {
     if (p.sid !== s.id) return;
     p.on = false; if (r.ph === 'lobby') delete r.p[p.id];

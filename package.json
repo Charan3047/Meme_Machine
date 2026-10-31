@@ -1,0 +1,14 @@
+{
+  "name": "meme-machine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node local-server.cjs" },
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.1",
+    "socket.io": "^4.8.1"
+  }
+}

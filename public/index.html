@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meme Machine</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#5B3DF5">
+<meta property="og:title" content="Meme Machine">
+<meta property="og:description" content="Be funny. Beat the machine.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c1240;--bg:#5b3df5;--y:#ffd23f;--p:#ff5c8a;--m:#2ee6a6;--s:#5cc8ff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:'Baloo 2',ui-rounded,system-ui,sans-serif;font-weight:600;font-size:18px;color:var(--ink);background:radial-gradient(#7a62ff 2px,transparent 2px) 0 0/26px 26px,var(--bg)}
+#app{max-width:480px;margin:0 auto;padding:14px 14px 48px}
+.logo{display:flex;align-items:center;gap:8px;font-size:48px;line-height:.84;margin:10px 0;color:var(--y);text-shadow:4px 4px 0 var(--ink);font-weight:800}
+.logo img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(3px 4px 0 var(--ink))}
+.sub{color:#fff;margin:0 0 6px}
+.c{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);padding:14px 16px;margin:14px 0}
+.how-to summary{cursor:pointer;font-size:22px;font-weight:800;list-style:none}
+.how-to summary::-webkit-details-marker{display:none}
+.how-to summary:after{content:'+';float:right;font-size:26px;line-height:1}
+.how-to[open] summary:after{content:'−'}
+.how-to h3{margin:12px 0 2px;font-size:18px}
+.how-to p{font-size:15px;line-height:1.35}
+.ctr{text-align:center}
+.big{font-size:34px;font-weight:800;line-height:1.1}
+.code{font-size:68px;font-weight:800;letter-spacing:8px;line-height:1.1}
+small{opacity:.7;font-weight:600}
+p{margin:6px 0}
+.b{font:inherit;font-weight:800;font-size:20px;width:100%;background:var(--y);color:var(--ink);border:3px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 var(--ink);padding:10px 18px;cursor:pointer;margin-top:8px}
+.b:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.b:disabled{opacity:.5;cursor:not-allowed}
+.pink{background:var(--p)}.blue{background:var(--s)}
+input,textarea{font:inherit;width:100%;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff;color:var(--ink)}
+textarea{resize:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:4px solid #fff;outline-offset:2px}
+.avs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.av{font-size:26px;background:#f2efff;border:3px solid var(--ink);border-radius:12px;padding:4px 0;cursor:pointer}
+.av.on{background:var(--m);transform:translateY(-3px);box-shadow:0 3px 0 var(--ink)}
+.pls{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pl,.chip{border:3px solid var(--ink);border-radius:99px;padding:2px 12px;background:#fff;font-weight:800}
+.pl.off{opacity:.4}
+.seg{display:flex;gap:8px;margin-top:8px}
+.seg button{flex:1;font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:12px;background:#fff;padding:6px;cursor:pointer}
+.seg .on{background:var(--m)}
+.top{display:flex;gap:8px;align-items:center;color:var(--ink)}
+.top .chip:first-child{margin-right:auto}
+.mu{font-size:20px;background:#fff;border:3px solid var(--ink);border-radius:99px;padding:2px 8px;cursor:pointer}
+.bar{height:16px;border:3px solid var(--ink);border-radius:9px;background:#fff;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:var(--p);animation:dr linear forwards}
+@keyframes dr{from{width:100%}to{width:0}}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-weight:700;color:var(--ink);cursor:pointer}
+.opt.on{background:var(--m)}
+.caption-choice{display:flex;align-items:flex-start;gap:12px;line-height:1.2}
+.caption-choice .num{flex:0 0 34px;height:34px;display:grid;place-items:center;border:2px solid var(--ink);border-radius:50%;background:var(--y);font-weight:800}
+.caption-choice:disabled{opacity:.8;cursor:default}
+.dim{opacity:.55}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{font:inherit;font-weight:800;font-size:18px;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:16px;box-shadow:4px 4px 0 var(--ink);padding:10px 4px;cursor:pointer}
+.tile span{display:block;font-size:40px;line-height:1.2}
+.tile.on{background:var(--m);transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:2px dashed #d9d4f5}
+.row:last-child{border-bottom:0}
+.row.me{background:#fff7d1;border-radius:8px;padding-left:6px;padding-right:6px}
+em{font-style:normal;font-weight:800;border:2px solid var(--ink);border-radius:9px;padding:0 8px}
+.pos{background:var(--m)}.neg{background:var(--p)}
+.hit em{animation:sh .5s 2s}
+.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes pop{from{transform:scale(.6) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important}}
+</style></head>
+<body>
+<div id="app"></div><div id="toast" role="status"></div>
+<script src="/api/socket-io/socket.io/socket.io.js"></script>
+<script>
+const $=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const AV=['😎','🤪','👻','🦊','🐼','🦄','🤖','🐸','🔥','👽','🐯','🧋'],ls=localStorage;
+const ME=ls.cc_id||(ls.cc_id=Math.random().toString(36).slice(2,12));
+let S=null,av=ls.cc_a||AV[0],nm=ls.cc_n||'',rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
+let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1';
+const so=io(location.origin,{path:'/api/socket-io/socket.io',transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
+
+/* ---------- sounds (synthesized, so nothing to license) ---------- */
+const tone=(f,d,t='square',v=.2,at=0,f2)=>{if(!AC||mute)return;const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;o.type=t;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(AC.destination);o.start(s);o.stop(s+d)};
+const noise=(d,v=.2,at=0)=>{if(!AC||mute)return;const n=AC.sampleRate*d|0,b=AC.createBuffer(1,n,AC.sampleRate),x=b.getChannelData(0);for(let i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=v;s.buffer=b;s.connect(g).connect(AC.destination);s.start(AC.currentTime+at)};
+const SND={
+ horn:()=>{[0,.18,.36].forEach(a=>{tone(440,.15,'sawtooth',.2,a);tone(554,.15,'sawtooth',.15,a)});tone(660,.5,'sawtooth',.2,.54)},
+ sad:()=>{[[392,0],[370,.45],[349,.9]].forEach(([f,a])=>tone(f,.45,'sawtooth',.25,a));tone(330,1.1,'sawtooth',.25,1.35,220)},
+ scratch:()=>{noise(.25,.3);tone(800,.25,'sawtooth',.2,0,100)},
+ drop:()=>{tone(150,.9,'sine',.5,0,35);noise(.3,.25)},
+ cheer:()=>{noise(.9,.18);[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.1))},
+ drum:()=>{for(let i=0;i<14;i++)noise(.05,.12,i*.08)},
+ win:()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,.3,'square',.15,i*.12))}
+};
+addEventListener('pointerdown',()=>{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()});
+
+/* ---------- network ---------- */
+so.on('connect',()=>{const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()})});
+so.on('in',d=>{sessionStorage.cc_c=d.code});
+so.on('err',m=>{if(!S)sessionStorage.removeItem('cc_c');flash(m)});
+so.on('s',s=>{S=s;onPhase();draw()});
+
+function flash(m){const t=$('toast');t.textContent=m;t.className='show';setTimeout(()=>t.className='',2600)}
+function setAv(i){av=AV[i];ls.cc_a=av;draw()}
+function create(){nm=nm.trim()||'Player';ls.cc_n=nm;ls.cc_a=av;so.emit('create',who())}
+function joinRoom(){nm=nm.trim()||'Player';ls.cc_n=nm;ls.cc_a=av;so.emit('join',{code:rc,...who()})}
+function cfg(n){so.emit('cfg',n)}
+function capChoice(i){if(S.ph!=='write'||S.mineCap!==undefined)return;sel=i;so.emit('cap',i);draw()}
+function vote(k){sel=k;so.emit('vote',k);draw()}
+function pick(i){pk=S.opts[i].n;so.emit('pick',pk);draw()}
+function mut(){mute=!mute;ls.m=mute?'1':'0';draw()}
+function inv(){navigator.clipboard.writeText(location.origin+location.pathname+'?room='+S.code).then(()=>flash('Invite link copied'))}
+function share(){const o=[...S.pl].sort((a,b)=>b.s-a.s),m=S.pl.find(p=>p.id===ME)||{},t=`${o[0].a} ${o[0].n} won Meme Machine with ${o[0].s} points! I scored ${m.s}. ${location.origin}`;navigator.share?navigator.share({text:t}).catch(()=>{}):navigator.clipboard.writeText(t).then(()=>flash('Result copied'))}
+function howToPlay(){return `<details class="c how-to" id="how-to"><summary>How to play</summary><h3>Caption round</h3><p>Pick 1 of 5 funny responses to the prompt. Then vote for the funniest response; you can't vote for your own.</p><h3>Don't Copy Me</h3><p>Pick a tile. Match the machine's secret tile and lose 10 points; pick a different tile and earn 20. No pick earns 0.</p><h3>Scoring</h3><p>Caption: +20 per vote, +10 for a top caption, +20 when 2 or more votes all go to one caption, and +5 for voting for a top caption. The final round is worth double.</p><h3>Win the match</h3><p>Play 4, 6, or 8 rounds. The highest score wins. In a 2-player game, a bot caption joins Caption rounds.</p></details>`}
+
+/* ---------- sound cues on phase change ---------- */
+function onPhase(){
+ const k=S.round+S.ph;if(k===lastKey)return;lastKey=k;sel=-1;pk='';
+ if(S.ph==='results'){SND.drum();setTimeout(result,1200)}else if(S.ph==='final')SND.win();
+}
+function result(){
+ const R=S.res||{},dl=R.dl||{},d=dl[ME]||0;
+ if(S.type==='D'&&R.picks){
+  const all=S.pl.length>1&&S.pl.every(p=>R.picks[p.id]===R.secret),none=!Object.values(dl).some(x=>x<0);
+  if(all)SND.drop();else if(d<0){SND.sad();setTimeout(SND.scratch,1900)}else if(none)SND.cheer();else if(d>0)SND.horn();
+ }else if(d>0)SND.horn();
+}
+
+/* ---------- views ---------- */
+const bar=()=>S.t?`<div class="bar" aria-hidden="true"><i style="animation-duration:${S.t}ms"></i></div>`:'';
+const board=()=>[...S.pl].sort((a,b)=>b.s-a.s).map(p=>`<div class="row ${p.id===ME?'me':''}"><span>${p.a} ${esc(p.n)}</span><b>${p.s}</b></div>`).join('');
+const nameOf=id=>{const p=S.pl.find(p=>p.id===id);return p?p.a+' '+esc(p.n):'Someone'};
+
+function home(){return `<h1 class="logo"><img src="/mascot.png" alt=""><span>Meme<br>Machine</span></h1><p class="sub">Be funny. Beat the machine. 2 to 8 players, one phone each.</p>
+<div class="c"><b>Your look</b><div class="avs">${AV.map((a,i)=>`<button class="av ${a===av?'on':''}" onclick="setAv(${i})" aria-label="Avatar ${a}">${a}</button>`).join('')}</div>
+<input id="nm" maxlength="12" placeholder="Your nickname" value="${esc(nm)}" oninput="nm=this.value"></div>
+<div class="c"><button class="b" style="margin:0" onclick="create()">Create a room</button></div>
+<div class="c"><b>Got a code?</b><input id="rc" maxlength="4" placeholder="Room code" autocapitalize="characters" value="${esc(rc)}" oninput="rc=this.value.toUpperCase()"><button class="b pink" onclick="joinRoom()">Join room</button></div>`}
+
+function game(){
+ const me=S.pl.find(p=>p.id===ME)||{},host=S.host===ME,on=S.pl.filter(p=>p.on).length,dn=S.pl.filter(p=>p.d).length,ph=S.ph;
+ let h='';
+ if(ph!=='lobby'&&ph!=='final')h+=`<div class="top"><span class="chip">Round ${S.round}/${S.total}${S.mult>1?' · double points':''}</span><span class="chip">${me.a} ${me.s}</span><button class="mu" onclick="mut()" aria-label="Toggle sound">${mute?'🔇':'🔊'}</button></div>`+bar();
+ if(ph==='lobby'){
+  h+=`<h1 class="logo"><img src="/mascot.png" alt=""><span>Meme<br>Machine</span></h1><div class="c ctr"><small>Room code</small><div class="code">${S.code}</div><button class="b blue" onclick="inv()">Copy invite link</button></div>
+  <div class="c"><b>Players ${S.pl.length}/8</b><div class="pls">${S.pl.map(p=>`<span class="pl ${p.on?'':'off'}">${p.a} ${esc(p.n)}${p.id===S.host?' 👑':''}</span>`).join('')}</div></div>
+  <div class="c ctr"><b>${S.content.prompts} caption setups · ${S.content.categories} categories</b><p><small>New funny picks and Don't Copy Me themes throughout the match</small></p></div>`;
+  h+=host?`<div class="c"><b>Rounds</b><div class="seg">${[4,6,8].map(n=>`<button class="${S.total===n?'on':''}" onclick="cfg(${n})">${n}</button>`).join('')}</div><button class="b" onclick="so.emit('start')" ${S.pl.length<2?'disabled':''}>${S.pl.length<2?'Waiting for a friend…':'Start game'}</button></div>`:`<div class="c ctr">Waiting for the host to start…</div>`;
+ }else if(ph==='intro'){
+  h+=S.type==='C'
+   ?`<div class="c ctr pop"><div class="big">Caption round</div><p>Pick the funniest response. Then everyone votes.</p></div><div class="c ctr">${esc(S.prompt)}</div>`
+   :`<div class="c ctr pop"><div class="big">Don't copy me</div><p>The machine secretly picks one. Match it and lose <b>10</b>. Miss it and win <b>20</b>.</p></div><div class="c ctr"><b>${esc(S.cat)}</b><div class="big">${S.opts.map(o=>o.e).join(' ')}</div></div>`;
+ }else if(ph==='write'){
+  h+=`<div class="c ctr pop"><small>Choose one for</small><p><b>${esc(S.prompt)}</b></p></div>`+
+   S.choices.map((choice,i)=>`<button class="c opt caption-choice ${(S.mineCap===i||sel===i)?'on':''}" onclick="capChoice(${i})" ${S.mineCap!==undefined?'disabled':''}><span class="num">${i+1}</span><span>${esc(choice)}${S.mineCap===i?' ✓':''}</span></button>`).join('')+
+   `<p class="ctr" style="color:#fff"><small>${S.mineCap!==undefined?'Choice locked in · waiting for everyone else':`${dn}/${on} players have chosen`}</small></p>`;
+ }else if(ph==='vote'){
+  h+=`<div class="c ctr"><b>Vote for the funniest</b><br><small>${dn}/${on} voted</small></div>`+S.en.map(e=>S.mine.includes(e.k)?`<div class="c dim">${esc(e.t)}<br><small>Your caption</small></div>`:`<button class="c opt ${sel===e.k?'on':''}" onclick="vote(${e.k})">${esc(e.t)}</button>`).join('');
+ }else if(ph==='pick'){
+  h+=`<div class="c ctr"><b>${esc(S.cat)}</b><br><small>Pick anything except the machine's secret choice</small></div><div class="grid">${S.opts.map((o,i)=>`<button class="tile ${pk===o.n?'on':''}" onclick="pick(${i})"><span>${o.e}</span>${o.n}</button>`).join('')}</div><p class="ctr" style="color:#fff">${dn}/${on} locked in</p>`;
+ }else if(ph==='results'){
+  const R=S.res||{};
+  if(S.type==='C'){
+   h+=R.en&&R.en.length?[...R.en].sort((a,b)=>b.v-a.v).map((e,i)=>`<div class="c pop" style="animation-delay:${1.2+i*.4}s"><div>${esc(e.t)}</div><small>${e.by?nameOf(e.by):'🤖 The bot'} · ${e.v} vote${e.v==1?'':'s'}${e.w?' · 👑 winner':''}</small></div>`).join(''):`<div class="c ctr">Not enough captions this round. Next one is coming.</div>`;
+   h+=`<div class="c">${[...S.pl].sort((a,b)=>b.s-a.s).map(p=>{const d=(R.dl||{})[p.id]||0;return `<div class="row ${p.id===ME?'me':''}"><span>${p.a} ${esc(p.n)}</span><span><b>${p.s}</b> ${d?`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`:''}</span></div>`}).join('')}</div>`;
+  }else{
+   const op=n=>S.opts.find(o=>o.n===n)||{e:''};
+   h+=`<div class="c ctr"><small>The machine picked</small><div class="big pop" style="animation-delay:1.2s">${op(R.secret).e} ${esc(R.secret)}</div></div>`+
+    S.pl.map((p,i)=>{const k=R.picks[p.id],d=R.dl[p.id];return `<div class="c row pop ${d<0?'hit':''}" style="animation-delay:${1.6+i*.3}s"><span>${p.a} ${esc(p.n)}</span><span>${k?op(k).e+' '+esc(k):'No pick'}</span><em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em></div>`}).join('')+`<div class="c">${board()}</div>`;
+  }
+ }else if(ph==='final'){
+  const o=[...S.pl].sort((a,b)=>b.s-a.s),m=['🥇','🥈','🥉'];
+  h+=`<h1 class="logo"><img src="/mascot.png" alt=""><span>Game<br>over</span></h1><div class="c ctr pop"><div class="big">🏆 ${o[0].a} ${esc(o[0].n)}</div><p>wins with ${o[0].s} points</p></div><div class="c">${o.map((p,i)=>`<div class="row ${p.id===ME?'me':''}"><span>${m[i]||(i+1)+'.'} ${p.a} ${esc(p.n)}</span><b>${p.s}</b></div>`).join('')}</div><button class="b blue" onclick="share()">Share result</button>`+(host?`<button class="b" onclick="so.emit('again')">Play again</button>`:`<p class="ctr" style="color:#fff">Waiting for the host to start a rematch…</p>`);
+ }
+ return h;
+}
+
+function draw(){
+ const guideOpen=$('how-to')?.open||false;
+ const c=$('cap'),cv=c&&c.value;
+ $('app').innerHTML=(S?game():home())+howToPlay();
+ const guide=$('how-to');if(guide)guide.open=guideOpen;
+ const n=$('cap');if(n&&cv){n.value=cv;n.focus()}
+}
+draw();
+</script></body></html>

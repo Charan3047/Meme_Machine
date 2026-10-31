@@ -39,7 +39,7 @@ Do not add a second GitHub remote or run `git init` again. The `express-upstash/
 7. Check `https://YOUR-DEPLOYMENT/api/health`. It should return `{"ok":true,"game":"meme-machine"}`.
 8. Open the deployed game on two devices. Create a room on one, join from the other, then play a short match. This checks both the WebSocket and the shared Redis room state.
 
-The function route is `/api/socket-io`, with Socket.IO at `/api/socket-io/socket.io`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
+The function route and Socket.IO endpoint are both `/api/socket-io`; the Socket.IO browser client is served as the static file `/socket.io.js`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
 
 ## Multiplayer playtest checklist
 

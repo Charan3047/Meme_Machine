@@ -1,8 +1,10 @@
 const express = require('express'), http = require('http'), path = require('path'), { randomUUID } = require('crypto');
 const { Server } = require('socket.io');
 const app = express(), srv = http.createServer(app);
-const socketPath = '/api/socket-io/socket.io';
-const io = new Server(srv, { path: socketPath });
+// Keep the Socket.IO endpoint on the exact Vercel function route. Nested paths
+// under /api/socket-io are not mapped to this function automatically.
+const socketPath = '/api/socket-io';
+const io = new Server(srv, { path: socketPath, addTrailingSlash: false });
 const Redis = require('ioredis');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const redisUrl = process.env.REDIS_URL;

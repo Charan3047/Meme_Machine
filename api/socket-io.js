@@ -1,2 +1,2 @@
-// Vercel WebSocket function. Socket.IO serves the /api/socket-io/socket.io path.
+// Vercel WebSocket function. Socket.IO uses this exact /api/socket-io route.
 module.exports = require('../socket-server.cjs');

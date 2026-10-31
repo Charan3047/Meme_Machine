@@ -82,7 +82,7 @@ em{font-style:normal;font-weight:800;border:2px solid var(--ink);border-radius:9
 </style></head>
 <body>
 <div id="app"></div><div id="toast" role="status"></div>
-<script src="/api/socket-io/socket.io/socket.io.js"></script>
+<script src="/socket.io.js"></script>
 <script>
 const $=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -90,7 +90,7 @@ const AV=['😎','🤪','👻','🦊','🐼','🦄','🤖','🐸','🔥','👽',
 const ME=ls.cc_id||(ls.cc_id=Math.random().toString(36).slice(2,12));
 let S=null,av=ls.cc_a||AV[0],nm=ls.cc_n||'',rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
 let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1';
-const so=io(location.origin,{path:'/api/socket-io/socket.io',transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
+const so=io(location.origin,{path:'/api/socket-io',addTrailingSlash:false,transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
 
 /* ---------- sounds (synthesized, so nothing to license) ---------- */
 const tone=(f,d,t='square',v=.2,at=0,f2)=>{if(!AC||mute)return;const o=AC.createOscillator(),g=AC.createGain(),s=AC.currentTime+at;o.type=t;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(AC.destination);o.start(s);o.stop(s+d)};

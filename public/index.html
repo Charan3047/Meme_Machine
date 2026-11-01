@@ -161,11 +161,16 @@ function onPhase(){
 }
 function schedulePhaseFallback(s){
  clearTimeout(phaseFallback);phaseFallback=null;
- if(!s.t||!so.connected)return;
+ if(!so.connected||!s||['lobby','final'].includes(s.ph))return;
  const round=s.round,phase=s.ph;
- phaseFallback=setTimeout(()=>{
-  if(so.connected&&S&&S.round===round&&S.ph===phase)so.emit('tick');
- },s.t+700);
+ const nudge=()=>{
+  if(!so.connected||!S||S.round!==round||S.ph!==phase)return;
+  so.emit('tick');
+  // A single timer nudge can be lost during a brief Redis/network hiccup.
+  // Retry until the server publishes a new phase (which reschedules this timer).
+  phaseFallback=setTimeout(nudge,2500);
+ };
+ phaseFallback=setTimeout(nudge,Math.max(500,(s.t||0)+700));
 }
 function result(){
  const R=S.res||{},dl=R.dl||{},d=dl[ME]||0;

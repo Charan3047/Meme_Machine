@@ -32,7 +32,7 @@ Do not add a second GitHub remote or run `git init` again. The `express-upstash/
 
 1. In Vercel, choose **Add New → Project** and import the existing `Charan3047/Meme_Machine` repository.
 2. Set the project root to the repository root. Use the **Other** framework preset if Vercel asks; do not select the nested `express-upstash/` sample.
-3. Let Vercel use the included `vercel.json`: static files are in `public/`, and the real-time function is `api/socket-io.js`. The default install command is `npm install`; there is no separate build command.
+3. Let Vercel use the included `vercel.json`: static files are in `public/`, with the real-time function at `api/socket-io.js` and the admin API at `api/admin.js`. The admin dashboard is the static page at `/admin/`. The default install command is `npm install`; there is no separate build command.
 4. Create and connect an Upstash Redis database through Vercel's Marketplace/Storage.
 5. Open the database's **Connect → TCP** section and copy its `rediss://default:...` connection string. In **Project Settings → Environment Variables**, add `REDIS_URL` with that entire value. Select Production, and Preview if you will test preview deployments. Do not paste the URL into a source file or commit it.
 6. For the admin API, add `ADMIN_API_KEY` as another Vercel environment variable. Use a long, randomly generated secret and keep it private. The endpoint returns `503` until both `REDIS_URL` and `ADMIN_API_KEY` are configured.
@@ -44,7 +44,7 @@ The function route and Socket.IO endpoint are both `/api/socket-io`; the Socket.
 
 ## Admin API
 
-The private endpoint is `https://YOUR-DEPLOYMENT/api/admin`. Send the `ADMIN_API_KEY` as a bearer token (`Authorization: Bearer YOUR_ADMIN_API_KEY`). Do not put the key in the website, a public GitHub file, or a URL.
+Open `https://YOUR-DEPLOYMENT/admin/` for the private browser dashboard. Enter the `ADMIN_API_KEY` saved in Vercel; the dashboard keeps it in page memory only and clears it when you sign out or close the page. It includes live usage cards, recent game activity, and forms to add custom prompts and categories. The API endpoint is `https://YOUR-DEPLOYMENT/api/admin`; requests use the bearer token header (`Authorization: Bearer YOUR_ADMIN_API_KEY`). Do not put the key in the public game code, a GitHub file, or a URL.
 
 - `GET /api/admin?action=overview` reports active browser sessions seen in the last 60 seconds and totals for unique visitors, rooms, joins, matches, caption picks, votes, Don't Copy Me picks, and completed matches. Counts are aggregated; player names are not collected.
 - `GET /api/admin?action=content` lists prompts and categories added by admins.

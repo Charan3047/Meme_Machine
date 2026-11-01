@@ -26,6 +26,7 @@ const lockKey = code => `meme-machine:lock:${code}`;
 const contentKey = 'meme-machine:custom-content';
 const metricsKey = 'meme-machine:metrics';
 const onlineKey = 'meme-machine:online';
+const activityKey = 'meme-machine:activity';
 const emptyContent = () => ({ prompts: P, categories: CATS });
 async function loadGameContent() {
   if (!stateRedis) return emptyContent();
@@ -38,7 +39,13 @@ async function loadGameContent() {
   };
 }
 function recordActivity(name) {
-  if (stateRedis) stateRedis.hincrby(metricsKey, name, 1).catch(err => console.error('Activity metric:', err.message));
+  if (!stateRedis) return;
+  stateRedis.multi()
+    .hincrby(metricsKey, name, 1)
+    .lpush(activityKey, JSON.stringify({ name, at: Date.now() }))
+    .ltrim(activityKey, 0, 39)
+    .exec()
+    .catch(err => console.error('Activity metric:', err.message));
 }
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 

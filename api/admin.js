@@ -6,6 +6,7 @@ const adminKey = process.env.ADMIN_API_KEY;
 const CONTENT_KEY = 'meme-machine:custom-content';
 const METRICS_KEY = 'meme-machine:metrics';
 const ONLINE_KEY = 'meme-machine:online';
+const ACTIVITY_KEY = 'meme-machine:activity';
 const BUILTIN_CATEGORIES = new Set(['Vegetables', 'Street food', 'Fruits', 'Phone apps', 'Animals', 'Sports', 'School stuff', 'Superpowers', 'Weekend plans', 'Movies', 'Travel', 'Space things', 'Kitchen items', 'Indian celebrations', 'Things that fly', 'Things at the beach', 'Weather', 'Music', 'Desserts', 'Gadgets', 'Jobs', 'Fashion', 'Breakfast', 'Transport', 'Internet', 'Indian landmarks', 'Mythical creatures', 'Birds', 'Chores', 'Party moments', 'In your backpack']);
 const PROFANITY = /\b(fuck|shit|bitch|asshole|bastard|cunt|slut|porn)\w*/gi;
 const redis = redisUrl ? new Redis(redisUrl, { maxRetriesPerRequest: 2, lazyConnect: true }) : null;
@@ -53,11 +54,16 @@ module.exports = async function admin(req, res) {
     if (req.method === 'GET' && action === 'overview') {
       const now = Date.now();
       await redis.zremrangebyscore(ONLINE_KEY, '-inf', now - 60000);
-      const [activeVisitors, metrics] = await Promise.all([redis.zcount(ONLINE_KEY, now - 60000, '+inf'), redis.hgetall(METRICS_KEY)]);
+      const [activeVisitors, metrics, activityRows] = await Promise.all([
+        redis.zcount(ONLINE_KEY, now - 60000, '+inf'),
+        redis.hgetall(METRICS_KEY),
+        redis.lrange(ACTIVITY_KEY, 0, 39)
+      ]);
       return send(res, 200, {
         activeVisitorsLast60Seconds: Number(activeVisitors),
         totals: Object.fromEntries(Object.entries(metrics).map(([key, value]) => [key, Number(value)])),
         trackedActivities: ['uniqueVisitors', 'roomsCreated', 'playersJoined', 'matchesStarted', 'captionPicks', 'votes', 'dontCopyPicks', 'matchesCompleted'],
+        recentActivity: activityRows.map(row => JSON.parse(row)),
         updatedAt: new Date(now).toISOString()
       });
     }

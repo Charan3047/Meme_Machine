@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#5b3df5">
+<title>Meme Machine · Admin</title>
+<style>
+:root{--purple:#5b3df5;--ink:#201744;--muted:#77728d;--paper:#f7f5ff;--line:#e9e5f6;--yellow:#ffdc59;--green:#27a876;--red:#ba3b54;--shadow:0 12px 40px #30205e12}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(#dcd4ff 1px,transparent 1px) 0 0/24px 24px,var(--paper);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit}
+.shell{width:min(1180px,calc(100% - 36px));margin:0 auto;padding:26px 0 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:var(--yellow);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);font-size:24px}.brand strong{font-size:17px;display:block;line-height:1.1}.brand small{color:var(--muted);font-weight:600}.top-actions{display:flex;align-items:center;gap:10px}.status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px #27a87620}.btn{border:0;border-radius:11px;padding:10px 15px;background:var(--purple);color:white;font-weight:750;box-shadow:0 4px 12px #5b3df52d}.btn:hover{filter:brightness(1.07);transform:translateY(-1px)}.btn.ghost{background:white;color:var(--ink);border:1px solid var(--line);box-shadow:none}.btn.small{padding:7px 11px;font-size:13px}.btn.red{background:#fff0f1;color:var(--red);box-shadow:none}.hero{border-radius:25px;padding:27px 30px;color:white;background:linear-gradient(118deg,#5b3df5,#7359ff 64%,#886eff);box-shadow:0 14px 32px #5b3df532;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:260px;height:260px;right:5%;top:-150px;border:38px solid #ffffff13;border-radius:50%}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:850;opacity:.78}.hero h1{font-size:clamp(28px,4vw,40px);line-height:1.08;margin:7px 0}.hero p{margin:7px 0 0;color:#e7e1ff;max-width:630px}.hero>*{position:relative;z-index:1}
+.login-wrap{min-height:68vh;display:grid;place-items:center}.login{width:min(450px,100%);padding:28px;background:white;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}.login h1{font-size:27px;margin:0 0 4px}.login p{color:var(--muted);margin:0 0 20px}.field{display:grid;gap:6px;margin:13px 0}.field label{font-size:13px;font-weight:800}.field input,.field textarea,.field select,.option-row input{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;color:var(--ink);outline:none}.field input:focus,.field textarea:focus,.option-row input:focus{border-color:var(--purple);box-shadow:0 0 0 3px #5b3df51c}.field textarea{resize:vertical;min-height:70px}.login .btn{width:100%;margin-top:6px}.note{font-size:12px!important;color:var(--muted)!important;margin-top:13px!important}.error{color:var(--red);font-size:13px;min-height:20px;margin:8px 0 0}.hidden{display:none!important}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:26px 0 12px}.section-head h2{font-size:19px;margin:0}.section-head p{color:var(--muted);font-size:13px;margin:2px 0 0}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.metric{min-height:122px;padding:17px 18px;background:white;border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.metric.live{background:var(--ink);color:white;border-color:var(--ink)}.metric-label{font-size:12px;font-weight:750;color:var(--muted)}.metric.live .metric-label{color:#c9c2e3}.metric-value{font-size:32px;line-height:1.1;font-weight:900;letter-spacing:-.04em;margin:10px 0 4px}.metric-foot{font-size:11px;color:var(--muted)}.metric.live .metric-foot{color:#bcb4df}.grid-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.panel h3{font-size:17px;margin:0}.panel .sub{font-size:12px;color:var(--muted);margin:3px 0 16px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.form-grid .full{grid-column:1/-1}.option-list{display:grid;gap:8px}.option-row{display:grid;grid-template-columns:minmax(0,1fr) 58px 72px 34px;gap:7px;align-items:center}.option-row input{padding:8px 9px;font-size:13px}.option-row .emoji{text-align:center;font-size:19px;padding:6px}.option-row .weight{text-align:center}.remove{height:34px;border:0;border-radius:9px;background:#f4f1ff;color:var(--muted);font-size:18px}.remove:hover{color:var(--red);background:#fff0f1}.form-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:13px}.help{font-size:11px;color:var(--muted)}.feed{display:grid;gap:0}.feed-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f0edf8}.feed-row:last-child{border:0}.feed-icon{width:34px;height:34px;border-radius:11px;background:#f1edff;display:grid;place-items:center;font-size:16px;flex:none}.feed-text{flex:1;font-size:13px;font-weight:750}.feed-time{font-size:11px;color:var(--muted);white-space:nowrap}.empty{font-size:13px;color:var(--muted);padding:18px 0}.content-list{display:grid;gap:9px}.content-row{background:#faf9ff;border:1px solid #efecf8;border-radius:12px;padding:11px 13px}.content-row strong{display:block;font-size:13px}.content-row small{color:var(--muted)}.content-count{display:inline-flex;align-items:center;background:#eeeaff;color:var(--purple);padding:3px 8px;border-radius:99px;font-size:11px;font-weight:800;margin-left:8px}#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:white;border-radius:12px;padding:11px 16px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:5;max-width:90%;text-align:center}#toast.show{opacity:1}
+@media(max-width:850px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-two{grid-template-columns:1fr}}@media(max-width:560px){.shell{width:calc(100% - 22px);padding-top:13px}.top{align-items:flex-start}.brand strong{font-size:15px}.status{display:none}.hero{padding:22px;border-radius:20px}.panel{padding:16px}.metric{padding:14px;min-height:108px}.metric-value{font-size:27px}.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}.option-row{grid-template-columns:minmax(0,1fr) 48px 55px 32px}.top-actions .btn{padding:8px 10px;font-size:12px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <a href="/" class="brand" style="text-decoration:none"><span class="logo">🤖</span><span><strong>Meme Machine</strong><small>Admin control room</small></span></a>
+    <div class="top-actions"><span class="status" id="status"><i class="dot"></i>Secure connection</span><button class="btn ghost small hidden" id="refresh">↻ Refresh</button><button class="btn red small hidden" id="logout">Sign out</button></div>
+  </header>
+
+  <section class="login-wrap" id="loginView">
+    <form class="login" id="loginForm">
+      <div class="eyebrow" style="color:var(--purple)">Private access</div>
+      <h1>Welcome, admin</h1>
+      <p>Enter the admin key saved in your Vercel project environment variables.</p>
+      <div class="field"><label for="adminKey">Admin key</label><input id="adminKey" type="password" autocomplete="current-password" required placeholder="Paste ADMIN_API_KEY" autofocus></div>
+      <button class="btn" id="connectBtn" type="submit">Open dashboard <span aria-hidden="true">→</span></button>
+      <div class="error" id="loginError" role="alert"></div>
+      <p class="note">The key stays in this page’s memory and is cleared when you sign out or close the page.</p>
+    </form>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="hero"><div class="eyebrow">Meme Machine · Admin</div><h1>Game control room</h1><p>See who's playing, follow game activity, and add fresh prompts and categories for your next match.</p></div>
+
+    <div class="section-head"><div><h2>Live overview</h2><p>Active sessions update every 20 seconds. Historical counters begin after analytics was deployed.</p></div><span class="help" id="updatedAt">Waiting for first update…</span></div>
+    <div class="metrics" id="metrics"></div>
+
+    <div class="grid-two" style="margin-top:17px">
+      <section class="panel"><h3>Recent activity</h3><p class="sub">Latest game actions across all rooms. Player names are not collected.</p><div class="feed" id="feed"></div></section>
+      <section class="panel"><h3>Added to the game <span class="content-count" id="contentCount">0</span></h3><p class="sub">Custom questions and categories are used in matches started after they are added.</p><div class="content-list" id="contentList"></div></section>
+    </div>
+
+    <div class="section-head"><div><h2>Grow the game</h2><p>Add new funny content without changing the code.</p></div></div>
+    <div class="grid-two">
+      <form class="panel" id="promptForm">
+        <h3>New caption question</h3><p class="sub">Add a setup and five ready-to-pick funny answers.</p>
+        <div class="field"><label for="question">Question or setup</label><textarea id="question" maxlength="180" required placeholder="When the group chat tries to pick a movie…"></textarea></div>
+        <div class="field"><label for="botCaption">2-player bot caption</label><input id="botCaption" maxlength="140" required placeholder="We watched trailers until sunrise"></div>
+        <div class="field"><label>Five answer options</label><div class="form-grid" id="captionInputs"></div></div>
+        <div class="form-actions"><span class="help">Each answer can be up to 140 characters.</span><button class="btn" type="submit">Add question</button></div>
+      </form>
+
+      <form class="panel" id="categoryForm">
+        <h3>New “Don’t Copy Me” category</h3><p class="sub">Give players 2–12 choices. The machine secretly picks one.</p>
+        <div class="field"><label for="categoryName">Category name</label><input id="categoryName" maxlength="50" required placeholder="Things in a school bag"></div>
+        <div class="field"><label>Choices <span class="help">Name · emoji · machine weight</span></label><div class="option-list" id="optionList"></div></div>
+        <div class="form-actions"><button class="btn ghost small" type="button" id="addOption">＋ Add choice</button><button class="btn" type="submit">Add category</button></div>
+        <p class="help" style="margin:12px 0 0">Weight 1–5 controls how likely the machine is to choose an item.</p>
+      </form>
+    </div>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+const $=id=>document.getElementById(id);
+let adminKey='',refreshTimer=null;
+const metricDefs=[
+  ['activeVisitorsLast60Seconds','Active now','Connected browsers seen in the last minute','live'],
+  ['uniqueVisitors','Unique browsers','Counted browser IDs'],
+  ['roomsCreated','Rooms created','New game rooms'],
+  ['playersJoined','Players joined','New room members'],
+  ['matchesStarted','Matches started','Games launched'],
+  ['matchesCompleted','Matches completed','Games reaching the final screen'],
+  ['captionPicks','Caption picks','Answer selections made'],
+  ['votes','Votes cast','Caption votes made'],
+  ['dontCopyPicks','Don’t Copy Me picks','Theme choices submitted']
+];
+const activityLabels={uniqueVisitors:'New browser counted',roomsCreated:'Room created',playersJoined:'Player joined a room',matchesStarted:'Match started',matchesCompleted:'Match completed',captionPicks:'Caption answer selected',votes:'Vote cast',dontCopyPicks:'Don’t Copy Me choice submitted'};
+const activityIcons={uniqueVisitors:'👋',roomsCreated:'🎟️',playersJoined:'➕',matchesStarted:'🎮',matchesCompleted:'🏁',captionPicks:'💬',votes:'🗳️',dontCopyPicks:'🎲'};
+function toast(message){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+async function request(action,method='GET',data){
+  const response=await fetch('/api/admin?action='+encodeURIComponent(action),{method,headers:{Authorization:'Bearer '+adminKey,...(data?{'Content-Type':'application/json'}:{})},body:data?JSON.stringify(data):undefined,cache:'no-store'});
+  let result={};try{result=await response.json()}catch{}
+  if(!response.ok)throw new Error(result.error||`Request failed (${response.status})`);
+  return result;
+}
+async function connect(event){
+  event.preventDefault();$('loginError').textContent='';const button=$('connectBtn');button.disabled=true;button.textContent='Connecting…';adminKey=$('adminKey').value.trim();
+  try{await request('overview');$('loginView').classList.add('hidden');$('dashboard').classList.remove('hidden');$('refresh').classList.remove('hidden');$('logout').classList.remove('hidden');await refresh();refreshTimer=setInterval(refresh,20000)}
+  catch(error){adminKey='';$('loginError').textContent=error.message;}
+  finally{button.disabled=false;button.innerHTML='Open dashboard <span aria-hidden="true">→</span>';}
+}
+function signOut(){adminKey='';clearInterval(refreshTimer);refreshTimer=null;$('dashboard').classList.add('hidden');$('loginView').classList.remove('hidden');$('refresh').classList.add('hidden');$('logout').classList.add('hidden');$('adminKey').value='';$('loginError').textContent='';$('adminKey').focus()}
+function renderMetrics(data){$('metrics').innerHTML=metricDefs.map(([key,label,foot,kind])=>`<article class="metric ${kind||''}"><div class="metric-label">${label}</div><div class="metric-value">${Number(key==='activeVisitorsLast60Seconds'?data[key]:(data.totals||{})[key]||0).toLocaleString()}</div><div class="metric-foot">${foot}</div></article>`).join('');$('updatedAt').textContent='Updated '+new Date(data.updatedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit',second:'2-digit'})}
+function renderFeed(rows){const feed=$('feed');if(!rows||!rows.length){feed.innerHTML='<div class="empty">No game activity yet. Start a room to see activity here.</div>';return}feed.innerHTML=rows.map(item=>`<div class="feed-row"><span class="feed-icon">${activityIcons[item.name]||'✨'}</span><span class="feed-text">${activityLabels[item.name]||'Game activity'}</span><span class="feed-time">${new Date(item.at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span></div>`).join('')}
+function renderContent(content){const entries=[...(content.prompts||[]).map(p=>({type:'Caption question',title:p[0],detail:(p[2]||[]).length+' answer options'})),...Object.entries(content.categories||{}).map(([name,options])=>({type:'Don’t Copy Me',title:name,detail:options.length+' choices'}))];$('contentCount').textContent=entries.length;$('contentList').innerHTML=entries.length?entries.map(item=>`<article class="content-row"><strong>${escapeHtml(item.title)}</strong><small>${item.type} · ${item.detail}</small></article>`).join(''):'<div class="empty">No custom content yet. Use the forms below to add some.</div>'}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+async function refresh(){try{const [overview,content]=await Promise.all([request('overview'),request('content')]);renderMetrics(overview);renderFeed(overview.recentActivity||[]);renderContent(content)}catch(error){$('updatedAt').textContent=error.message;if(error.message==='Admin key required.')toast('Admin key rejected. Sign in again.')}}
+function initCaptionFields(){const root=$('captionInputs');for(let i=1;i<=5;i++){const wrap=document.createElement('div');wrap.className='field';wrap.innerHTML=`<label for="caption${i}">Option ${i}</label><input id="caption${i}" maxlength="140" required placeholder="Funny answer ${i}">`;root.append(wrap)}}
+function addOptionRow(name='',emoji='',weight=3){const root=$('optionList');if(root.children.length>=12){toast('A category can have at most 12 choices.');return}const row=document.createElement('div');row.className='option-row';row.innerHTML='<input class="option-name" maxlength="40" required aria-label="Choice name" placeholder="Choice name"><input class="emoji" maxlength="12" required aria-label="Emoji" placeholder="😀"><input class="weight" type="number" min="1" max="5" value="3" aria-label="Machine weight"><button class="remove" type="button" aria-label="Remove choice">×</button>';row.querySelector('.option-name').value=name;row.querySelector('.emoji').value=emoji;row.querySelector('.weight').value=weight;row.querySelector('.remove').onclick=()=>{if(root.children.length<=2){toast('Keep at least two choices.');return}row.remove()};root.append(row)}
+async function submitPrompt(event){event.preventDefault();const button=event.submitter;button.disabled=true;try{const payload={question:$('question').value,botCaption:$('botCaption').value,captions:[1,2,3,4,5].map(i=>$('caption'+i).value)};const result=await request('add-prompt','POST',payload);toast('Question added for new matches.');$('promptForm').reset();$('question').focus();await refresh()}catch(error){toast(error.message)}finally{button.disabled=false}}
+async function submitCategory(event){event.preventDefault();const button=event.submitter;button.disabled=true;try{const options=[...$('optionList').querySelectorAll('.option-row')].map(row=>({name:row.querySelector('.option-name').value,emoji:row.querySelector('.emoji').value,weight:Number(row.querySelector('.weight').value)}));await request('add-category','POST',{category:$('categoryName').value,options});toast('Category added for new matches.');$('categoryForm').reset();$('optionList').innerHTML='';for(let i=0;i<4;i++)addOptionRow();await refresh()}catch(error){toast(error.message)}finally{button.disabled=false}}
+$('loginForm').addEventListener('submit',connect);$('logout').addEventListener('click',signOut);$('refresh').addEventListener('click',refresh);$('promptForm').addEventListener('submit',submitPrompt);$('categoryForm').addEventListener('submit',submitCategory);$('addOption').addEventListener('click',()=>addOptionRow());initCaptionFields();for(const seed of [['','',3],['','',3],['','',3],['','',3]])addOptionRow(...seed);
+</script>
+</body>
+</html>

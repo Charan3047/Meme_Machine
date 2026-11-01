@@ -8,7 +8,7 @@
 
 **Pick a punchline. Read the room. Beat the machine.**
 
-[Play Meme Machine](https://memeachine.vercel.app/) · [Admin dashboard](https://memeachine.vercel.app/admin/) · [Report an issue](https://github.com/Charan3047/Meme_Machine/issues)
+[Play Meme Machine](https://memeachine.vercel.app/) · [Report an issue](https://github.com/Charan3047/Meme_Machine/issues)
 
 ![Players](https://img.shields.io/badge/players-2%E2%80%938-5b3df5)
 ![Platform](https://img.shields.io/badge/platform-browser-27a876)
@@ -71,18 +71,8 @@ The app uses Vercel Functions for real-time Socket.IO connections and the admin 
 6. Deploy or redeploy after saving the variables.
 7. Check `https://YOUR-DOMAIN/api/health`; a working deployment returns `{"ok":true,"game":"meme-machine"}`.
 
-Treat `REDIS_URL` and `ADMIN_API_KEY` as secrets. Keep them in Vercel’s Environment Variables, not in browser code or a public GitHub commit. Vercel applies environment variable changes to new deployments, so redeploy after adding or updating them.
+Treat `REDIS_URL`  as secret. Keep them in Vercel’s Environment Variables, not in browser code or a public GitHub commit. Vercel applies environment variable changes to new deployments, so redeploy after adding or updating them.
 
-## Admin dashboard
-
-Open `https://YOUR-DOMAIN/admin/` and sign in with the `ADMIN_API_KEY` configured in Vercel. The dashboard provides:
-
-- Active browser sessions seen in the last 60 seconds
-- Aggregate visitor, room, match, caption, vote, and category-pick counts
-- A recent activity feed that does not show player names
-- Forms to add caption setups and “Don’t Copy Me” categories
-
-The dashboard keeps the key in page memory only and clears it when you sign out or close the page. Custom prompts and categories are saved to Redis and join the built-in content in **new matches**; matches already in progress keep their original content.
 
 ## Built with
 
@@ -100,7 +90,6 @@ api/
   health.js         Deployment health check
   socket-io.js      Real-time game function
 public/
-  admin/index.html  Admin dashboard
   index.html        Player-facing game
 socket-server.cjs   Game rules, room state, and Socket.IO events
 vercel.json         Vercel function and output settings

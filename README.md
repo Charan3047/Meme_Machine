@@ -84,17 +84,6 @@ Open `https://YOUR-DOMAIN/admin/` and sign in with the `ADMIN_API_KEY` configure
 
 The dashboard keeps the key in page memory only and clears it when you sign out or close the page. Custom prompts and categories are saved to Redis and join the built-in content in **new matches**; matches already in progress keep their original content.
 
-The protected API is available at `/api/admin`:
-
-| Request | Purpose |
-| --- | --- |
-| `GET /api/admin?action=overview` | Current sessions and aggregate game activity |
-| `GET /api/admin?action=content` | Custom prompts and categories |
-| `POST /api/admin?action=add-prompt` | Add a prompt with five caption choices |
-| `POST /api/admin?action=add-category` | Add a themed category with 2–12 choices |
-
-API requests require `Authorization: Bearer ADMIN_API_KEY`. The dashboard handles this automatically, so you do not need to use the command line to manage game content.
-
 ## Built with
 
 - **Frontend:** HTML, CSS, and browser JavaScript

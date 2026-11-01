@@ -5,6 +5,9 @@
   "functions": {
     "api/socket-io.js": {
       "maxDuration": 300
+    },
+    "api/admin.js": {
+      "maxDuration": 30
     }
   }
 }

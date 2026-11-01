@@ -35,11 +35,37 @@ Do not add a second GitHub remote or run `git init` again. The `express-upstash/
 3. Let Vercel use the included `vercel.json`: static files are in `public/`, and the real-time function is `api/socket-io.js`. The default install command is `npm install`; there is no separate build command.
 4. Create and connect an Upstash Redis database through Vercel's Marketplace/Storage.
 5. Open the database's **Connect → TCP** section and copy its `rediss://default:...` connection string. In **Project Settings → Environment Variables**, add `REDIS_URL` with that entire value. Select Production, and Preview if you will test preview deployments. Do not paste the URL into a source file or commit it.
-6. Save the variable and deploy (or redeploy if the project was already deployed). WebSockets require Fluid Compute, which is enabled by default on new Vercel projects. This project sets the Socket.IO function's `maxDuration` to 300 seconds; Vercel closes a WebSocket when that duration ends, and the client reconnects and rejoins through Redis.
-7. Check `https://YOUR-DEPLOYMENT/api/health`. It should return `{"ok":true,"game":"meme-machine"}`.
-8. Open the deployed game on two devices. Create a room on one, join from the other, then play a short match. This checks both the WebSocket and the shared Redis room state.
+6. For the admin API, add `ADMIN_API_KEY` as another Vercel environment variable. Use a long, randomly generated secret and keep it private. The endpoint returns `503` until both `REDIS_URL` and `ADMIN_API_KEY` are configured.
+7. Save the variables and deploy (or redeploy if the project was already deployed). WebSockets require Fluid Compute, which is enabled by default on new Vercel projects. This project sets the Socket.IO function's `maxDuration` to 300 seconds; Vercel closes a WebSocket when that duration ends, and the client reconnects and rejoins through Redis.
+8. Check `https://YOUR-DEPLOYMENT/api/health`. It should return `{"ok":true,"game":"meme-machine"}`.
+9. Open the deployed game on two devices. Create a room on one, join from the other, then play a short match. This checks both the WebSocket and the shared Redis room state.
 
 The function route and Socket.IO endpoint are both `/api/socket-io`; the Socket.IO browser client is served as the static file `/socket.io.js`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
+
+## Admin API
+
+The private endpoint is `https://YOUR-DEPLOYMENT/api/admin`. Send the `ADMIN_API_KEY` as a bearer token (`Authorization: Bearer YOUR_ADMIN_API_KEY`). Do not put the key in the website, a public GitHub file, or a URL.
+
+- `GET /api/admin?action=overview` reports active browser sessions seen in the last 60 seconds and totals for unique visitors, rooms, joins, matches, caption picks, votes, Don't Copy Me picks, and completed matches. Counts are aggregated; player names are not collected.
+- `GET /api/admin?action=content` lists prompts and categories added by admins.
+- `POST /api/admin?action=add-prompt` adds a caption setup. JSON body: `{"question":"...","botCaption":"...","captions":["...","...","...","...","..."]}`.
+- `POST /api/admin?action=add-category` adds a Don't Copy Me category. JSON body: `{"category":"Pets","options":[{"name":"Dog","emoji":"🐶","weight":5},{"name":"Cat","emoji":"🐱","weight":5}]}`. Include 2–12 options; weights from 1–5 are optional.
+
+Example PowerShell usage (replace the deployment address and key locally):
+
+```powershell
+$headers = @{ Authorization = "Bearer YOUR_ADMIN_API_KEY" }
+Invoke-RestMethod "https://YOUR-DEPLOYMENT/api/admin?action=overview" -Headers $headers
+
+$prompt = @{
+  question = "When the group chat picks a movie"
+  botCaption = "We watched the trailers until sunrise"
+  captions = @("The snacks got more screen time", "We picked a movie by committee", "I fell asleep during the opening logos", "The remote is the real main character", "We will finish choosing by next weekend")
+} | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Post -Uri "https://YOUR-DEPLOYMENT/api/admin?action=add-prompt" -Headers $headers -ContentType "application/json" -Body $prompt
+```
+
+New content is saved in Redis and loaded into newly started matches. Existing matches keep the content they started with.
 
 After joining or creating a room, its code is added to the URL history. Browser Back returns to the home screen and leaves the room; Forward rejoins it while the room is still active.
 

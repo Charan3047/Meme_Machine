@@ -110,7 +110,9 @@ const SND={
 addEventListener('pointerdown',()=>{AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume()});
 
 /* ---------- network ---------- */
-so.on('connect',()=>{const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()});if(S)draw()});
+const heartbeat=()=>{if(so.connected)so.emit('activity',{id:ME})};
+so.on('connect',()=>{heartbeat();const c=sessionStorage.cc_c;if(c)so.emit('join',{code:c,...who()});if(S)draw()});
+setInterval(heartbeat,20000);
 so.on('disconnect',()=>{if(S){flash('Connection interrupted. Reconnecting…');draw()}});
 so.on('in',d=>{
  sessionStorage.cc_c=d.code;rc=d.code;

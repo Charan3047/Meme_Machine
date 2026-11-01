@@ -23,6 +23,23 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, game: 'meme-machine' 
 const R = {}; // hot room cache; Redis is authoritative when REDIS_URL is configured
 const roomKey = code => `meme-machine:room:${code}`;
 const lockKey = code => `meme-machine:lock:${code}`;
+const contentKey = 'meme-machine:custom-content';
+const metricsKey = 'meme-machine:metrics';
+const onlineKey = 'meme-machine:online';
+const emptyContent = () => ({ prompts: P, categories: CATS });
+async function loadGameContent() {
+  if (!stateRedis) return emptyContent();
+  const raw = await stateRedis.get(contentKey);
+  if (!raw) return emptyContent();
+  const extra = JSON.parse(raw);
+  return {
+    prompts: [...P, ...(Array.isArray(extra.prompts) ? extra.prompts : [])],
+    categories: { ...CATS, ...(extra.categories && typeof extra.categories === 'object' ? extra.categories : {}) }
+  };
+}
+function recordActivity(name) {
+  if (stateRedis) stateRedis.hincrby(metricsKey, name, 1).catch(err => console.error('Activity metric:', err.message));
+}
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function withRoomLock(code, work) {
@@ -38,6 +55,7 @@ async function withRoomLock(code, work) {
     const raw = await stateRedis.get(roomKey(code));
     let r = raw ? JSON.parse(raw) : null;
     if (r) {
+      if (!r.content) r.content = emptyContent();
       const local = R[code];
       r.d = new Set(r.d || []);
       r.tm = local && local.ph === r.ph && local.end === r.end ? local.tm : 0;
@@ -63,7 +81,7 @@ function withPlayerRoom(s, handler) {
     withRoomLock(code, async r => {
       if (!r || !r.p[id]) return;
       const p = r.p[id];
-      handler(r, p, ...args);
+      await handler(r, p, ...args);
     }).catch(err => s.emit('err', err.message || 'Room update failed. Please reconnect.'));
   };
 }
@@ -170,16 +188,17 @@ const wpick = o => { let t = o.reduce((a, x) => a + x.w, 0) * Math.random(); for
 
 // Each player only ever receives their own view. The machine's pick is never sent before the reveal.
 function view(r, pid) {
+  const content = r.content || emptyContent();
   const v = {
     code: r.code, ph: r.ph, host: r.host, round: r.round, total: r.total, type: r.type, mult: r.mult,
-    content: { prompts: P.length, categories: Object.keys(CATS).length },
+    content: { prompts: content.prompts.length, categories: Object.keys(content.categories).length },
     t: r.end ? Math.max(0, r.end - Date.now()) : 0,
     pl: Object.values(r.p).map(p => ({ id: p.id, n: p.n, a: p.a, s: p.s, on: p.on, d: r.d.has(p.id) }))
   };
   if (r.type === 'C' && ['intro', 'write', 'vote', 'results'].includes(r.ph)) v.prompt = r.prompt;
-  if (r.type === 'C' && ['intro', 'write'].includes(r.ph)) { v.choices = P[r.pr][2]; if (r.ph === 'write') v.mineCap = r.caps[pid]; }
+  if (r.type === 'C' && ['intro', 'write'].includes(r.ph)) { v.choices = content.prompts[r.pr][2]; if (r.ph === 'write') v.mineCap = r.caps[pid]; }
   if (r.type === 'D' && ['intro', 'pick', 'results'].includes(r.ph)) {
-    v.cat = r.cat; v.opts = r.opts.map(o => ({ n: o.n, e: o.e }));
+    v.cat = r.cat; v.opts = (r.opts || content.categories[r.cat] || []).map(o => ({ n: o.n, e: o.e }));
     if (r.ph === 'pick') v.minePick = r.picks[pid] || null;
   }
   if (r.ph === 'vote') {
@@ -207,23 +226,25 @@ function early(r) { // everyone online has acted, so skip the wait
 }
 function reset(r) {
   Object.values(r.p).forEach(p => p.s = 0);
-  r.round = 0; r.pq = shuf(P.map((_, i) => i)); r.cq = shuf(Object.keys(CATS)); r.ci = 0; r.di = 0;
+  const content = r.content || emptyContent();
+  r.round = 0; r.pq = shuf(content.prompts.map((_, i) => i)); r.cq = shuf(Object.keys(content.categories)); r.ci = 0; r.di = 0;
 }
 
 // Match plan: Caption, Caption, Don't Copy Me, repeat. The last round is worth double.
 function next(r) {
-  if (r.round >= r.total) { clearTimeout(r.tm); r.tm = 0; r.ph = 'final'; r.end = 0; r.d = new Set(); return push(r); }
+  if (r.round >= r.total) { clearTimeout(r.tm); r.tm = 0; r.ph = 'final'; r.end = 0; r.d = new Set(); recordActivity('matchesCompleted'); return push(r); }
   r.round++; r.type = r.round % 3 === 0 ? 'D' : 'C'; r.mult = r.round === r.total ? 2 : 1;
   r.caps = {}; r.picks = {}; r.votes = {};
-  if (r.type === 'C') { r.pr = r.pq[r.ci++ % P.length]; r.prompt = P[r.pr][0]; }
-  else { r.cat = r.cq[r.di++ % r.cq.length]; r.opts = CATS[r.cat]; r.secret = wpick(r.opts); }
+  if (r.type === 'C') { r.pr = r.pq[r.ci++ % r.pq.length]; r.prompt = r.content.prompts[r.pr][0]; }
+  else { r.cat = r.cq[r.di++ % r.cq.length]; r.opts = r.content.categories[r.cat]; r.secret = wpick(r.opts); }
   go(r, 'intro', 1200);
 }
 function toVote(r) {
+  const prompts = r.content.prompts;
   const submissions = Object.entries(r.caps)
-    .filter(([, choice]) => Number.isInteger(choice) && P[r.pr][2][choice])
-    .map(([by, choice]) => ({ by, t: P[r.pr][2][choice] }));
-  if (Object.keys(r.p).length === 2) submissions.push({ by: null, t: P[r.pr][1] }); // bot caption keeps 2-player rounds votable
+    .filter(([, choice]) => Number.isInteger(choice) && prompts[r.pr][2][choice])
+    .map(([by, choice]) => ({ by, t: prompts[r.pr][2][choice] }));
+  if (Object.keys(r.p).length === 2) submissions.push({ by: null, t: prompts[r.pr][1] }); // bot caption keeps 2-player rounds votable
 
   // Identical choices become one anonymous voting option. Their authors share its caption points.
   const grouped = new Map();
@@ -283,6 +304,19 @@ function expireRoom(code, phase, end) {
 
 const pid = x => String(x || '').slice(0, 40);
 io.on('connection', s => {
+  s.on('activity', d => {
+    if (!stateRedis) return;
+    const id = pid(d && d.id);
+    if (!id) return;
+    const now = Date.now();
+    Promise.all([
+      stateRedis.zadd(onlineKey, now, id),
+      stateRedis.zremrangebyscore(onlineKey, '-inf', now - 60000),
+      stateRedis.set(`meme-machine:visitor:${id}`, '1', 'EX', 2592000, 'NX')
+    ]).then(([, , firstVisit]) => {
+      if (firstVisit === 'OK') recordActivity('uniqueVisitors');
+    }).catch(err => console.error('Activity heartbeat:', err.message));
+  });
   const enter = (r, id, n, a) => {
     let p = r.p[id];
     if (p) { p.sid = s.id; p.on = true; }
@@ -299,7 +333,7 @@ io.on('connection', s => {
       await withRoomLock(code, r => {
         if (r) return;
         const room = R[code] = { code, host: id, p: {}, ph: 'lobby', round: 0, total: 6, end: 0, d: new Set(), votes: {}, caps: {}, picks: {} };
-        reset(room); enter(room, id, nm(d.n), d.a);
+        room.content = emptyContent(); reset(room); enter(room, id, nm(d.n), d.a); recordActivity('roomsCreated');
       });
     })().catch(err => s.emit('err', err.message || 'Could not create a room.'));
   });
@@ -309,9 +343,11 @@ io.on('connection', s => {
     if (!/^[BCDFGHJKLMNPQRSTVWXZ]{4}$/.test(code) || !id) return s.emit('err', 'Enter a valid room code and player name.');
     withRoomLock(code, r => {
       if (!r) return s.emit('err', 'Room not found. Check the code.');
-      if (!r.p[id] && r.ph !== 'lobby') return s.emit('err', 'That game has already started.');
-      if (!r.p[id] && Object.keys(r.p).length >= 8) return s.emit('err', 'Room is full (8 players).');
+      const isNew = !r.p[id];
+      if (isNew && r.ph !== 'lobby') return s.emit('err', 'That game has already started.');
+      if (isNew && Object.keys(r.p).length >= 8) return s.emit('err', 'Room is full (8 players).');
       enter(r, id, nm(d.n), d.a);
+      if (isNew) recordActivity('playersJoined');
     }).catch(err => s.emit('err', err.message || 'Could not join this room.'));
   });
 
@@ -319,24 +355,25 @@ io.on('connection', s => {
     if (r.host !== p.id || r.ph !== 'lobby') return;
     r.total = [4, 6, 8].includes(+t) ? +t : 6; push(r);
   }));
-  s.on('start', withPlayerRoom(s, (r, p) => {
+  s.on('start', withPlayerRoom(s, async (r, p) => {
     if (r.host !== p.id || r.ph !== 'lobby' || Object.keys(r.p).length < 2) return;
-    reset(r); next(r);
+    r.content = await loadGameContent(); reset(r); next(r); recordActivity('matchesStarted');
   }));
   s.on('cap', withPlayerRoom(s, (r, p, t) => {
     if (r.ph !== 'write' || r.d.has(p.id)) return;
     const choice = Number(t);
-    if (!Number.isInteger(choice) || choice < 0 || choice >= P[r.pr][2].length) return;
-    r.caps[p.id] = choice; r.d.add(p.id); push(r); early(r);
+    const prompts = (r.content || emptyContent()).prompts;
+    if (!Number.isInteger(choice) || choice < 0 || choice >= prompts[r.pr][2].length) return;
+    r.caps[p.id] = choice; r.d.add(p.id); recordActivity('captionPicks'); push(r); early(r);
   }));
   s.on('vote', withPlayerRoom(s, (r, p, k) => {
     if (r.ph !== 'vote') return; const e = r.en.find(e => e.k === k);
     if (!e || (e.authors || (e.by ? [e.by] : [])).includes(p.id)) return;
-    r.votes[p.id] = k; r.d.add(p.id); push(r); early(r);
+    r.votes[p.id] = k; r.d.add(p.id); recordActivity('votes'); push(r); early(r);
   }));
   s.on('pick', withPlayerRoom(s, (r, p, n) => {
-    if (r.ph !== 'pick' || !r.opts.some(o => o.n === n)) return;
-    r.picks[p.id] = n; r.d.add(p.id); push(r); early(r);
+    if (r.ph !== 'pick' || !(r.opts || []).some(o => o.n === n)) return;
+    r.picks[p.id] = n; r.d.add(p.id); recordActivity('dontCopyPicks'); push(r); early(r);
   }));
   s.on('tick', withPlayerRoom(s, r => {
     if (!r.end || Date.now() < r.end) return;

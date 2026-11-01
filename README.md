@@ -1,76 +1,122 @@
+<div align="center">
+
+![Meme Machine — a real-time party game for 2–8 players](public/og-image.png)
+
 # Meme Machine
 
-Meme Machine is a mobile-friendly party game for 2–8 players. In Caption rounds, everyone picks one of five funny responses to the same prompt, then votes for the funniest submitted response. Don't Copy Me rounds use a secret machine pick and themed tiles, now drawn from 32 categories. The caption prompt deck contains 47 scenarios. One person hosts a room and shares its four-letter code or same-Wi-Fi invite address.
+### A real-time online party game where your funniest friends take the crown.
 
-## Run locally
+**Pick a punchline. Read the room. Beat the machine.**
 
-1. Install the current Node.js LTS release.
-2. Open this folder in VS Code.
-3. In the VS Code terminal, run `npm install` once.
-4. Run `npm start` and leave the terminal open.
-5. Open `http://localhost:3000` on the host's computer.
-6. For friends on the same Wi-Fi, use the `Same-Wi-Fi invite` address printed in the terminal. If Windows asks about the firewall, allow Node.js on private networks.
+[Play Meme Machine](https://memeachine.vercel.app/) · [Admin dashboard](https://memeachine.vercel.app/admin/) · [Report an issue](https://github.com/Charan3047/Meme_Machine/issues)
 
-The service check is at `http://localhost:3000/api/health` and should return `{"ok":true,"game":"meme-machine"}`.
+![Players](https://img.shields.io/badge/players-2%E2%80%938-5b3df5)
+![Platform](https://img.shields.io/badge/platform-browser-27a876)
+![Realtime](https://img.shields.io/badge/multiplayer-real--time-ffbd39)
+![Node](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
 
-## Deploy on GitHub and Vercel
+</div>
 
-The Vercel deployment uses a Socket.IO WebSocket function plus Redis for room state and cross-instance messages. Room records expire after 24 hours. `.env*`, `.vercel/`, and the separate `express-upstash/` tutorial sample are excluded from Git.
+Meme Machine is a browser-based multiplayer party game for **2–8 players**. Everyone joins from their own phone or computer using a room code—no app download required. Play quick caption battles, make risky picks in **Don’t Copy Me**, and see who earns the highest score.
 
-### Push the current project to GitHub
+## How to play
 
-This folder is already connected to the `Charan3047/Meme_Machine` GitHub repository on the `main` branch. From the VS Code terminal opened in this folder:
+1. One person creates a room and shares its four-letter code or invite link.
+2. Friends join from their own devices. The host chooses a 4, 6, or 8 round match.
+3. Play two fast party rounds:
+   - **Caption Clash:** Pick one of five funny answers to a prompt. Everyone votes for the funniest caption.
+   - **Don’t Copy Me:** Pick a themed option. Match the machine’s secret pick and lose points; choose something different to score.
+4. Scores update after every round. The top scorer wins; the final round is worth double.
 
-1. Run `git status` and confirm the changed files are the Meme Machine project files.
-2. Run `git add -A`.
-3. Run `git commit -m "Prepare Meme Machine for Vercel"`.
-4. Run `git push origin main`.
+Caption Clash includes **47 built-in setups**, each with five ready-made answers. Don’t Copy Me includes **32 built-in categories**. The admin dashboard can add custom setups and categories for future matches.
 
-Do not add a second GitHub remote or run `git init` again. The `express-upstash/` folder is an unrelated tutorial sample and is ignored.
+## Why friends play
 
-### Import and configure the Vercel project
+- **Real-time multiplayer:** Room state, picks, votes, and scores sync as the game happens.
+- **Made for phones:** Responsive controls and layouts work on mobile and desktop browsers.
+- **Quick to join:** Share a room code or invite link—players don’t need accounts.
+- **Two ways to laugh:** Choose funny captions or try to avoid the machine’s secret pick.
+- **Short matches:** Pick 4, 6, or 8 rounds.
+- **Works with two:** A bot caption keeps caption voting lively in a two-player match.
+- **Reconnect support:** Players can reconnect to an active room, and host rights can move to another player.
+- **Admin tools:** View aggregate usage, follow recent activity, and add game content from a private dashboard.
 
-1. In Vercel, choose **Add New → Project** and import the existing `Charan3047/Meme_Machine` repository.
-2. Set the project root to the repository root. Use the **Other** framework preset if Vercel asks; do not select the nested `express-upstash/` sample.
-3. Let Vercel use the included `vercel.json`: static files are in `public/`, with the real-time function at `api/socket-io.js` and the admin API at `api/admin.js`. The admin dashboard is the static page at `/admin/`. The default install command is `npm install`; there is no separate build command.
-4. Create and connect an Upstash Redis database through Vercel's Marketplace/Storage.
-5. Open the database's **Connect → TCP** section and copy its `rediss://default:...` connection string. In **Project Settings → Environment Variables**, add `REDIS_URL` with that entire value. Select Production, and Preview if you will test preview deployments. Do not paste the URL into a source file or commit it.
-6. For the admin API, add `ADMIN_API_KEY` as another Vercel environment variable. Use a long, randomly generated secret and keep it private. The endpoint returns `503` until both `REDIS_URL` and `ADMIN_API_KEY` are configured.
-7. Save the variables and deploy (or redeploy if the project was already deployed). WebSockets require Fluid Compute, which is enabled by default on new Vercel projects. This project sets the Socket.IO function's `maxDuration` to 300 seconds; Vercel closes a WebSocket when that duration ends, and the client reconnects and rejoins through Redis.
-8. Check `https://YOUR-DEPLOYMENT/api/health`. It should return `{"ok":true,"game":"meme-machine"}`.
-9. Open the deployed game on two devices. Create a room on one, join from the other, then play a short match. This checks both the WebSocket and the shared Redis room state.
+## Run Meme Machine locally
 
-The function route and Socket.IO endpoint are both `/api/socket-io`; the Socket.IO browser client is served as the static file `/socket.io.js`. The health route is `/api/health`. Local `npm start` uses in-memory rooms unless you set `REDIS_URL`; Vercel requires `REDIS_URL`.
+### Requirements
 
-## Admin API
+- [Node.js 20 or newer](https://nodejs.org/)
+- npm, included with Node.js
 
-Open `https://YOUR-DEPLOYMENT/admin/` for the private browser dashboard. Enter the `ADMIN_API_KEY` saved in Vercel; the dashboard keeps it in page memory only and clears it when you sign out or close the page. It includes live usage cards, recent game activity, and forms to add custom prompts and categories. The API endpoint is `https://YOUR-DEPLOYMENT/api/admin`; requests use the bearer token header (`Authorization: Bearer YOUR_ADMIN_API_KEY`). Do not put the key in the public game code, a GitHub file, or a URL.
+### Start the game
 
-- `GET /api/admin?action=overview` reports active browser sessions seen in the last 60 seconds and totals for unique visitors, rooms, joins, matches, caption picks, votes, Don't Copy Me picks, and completed matches. Counts are aggregated; player names are not collected.
-- `GET /api/admin?action=content` lists prompts and categories added by admins.
-- `POST /api/admin?action=add-prompt` adds a caption setup. JSON body: `{"question":"...","botCaption":"...","captions":["...","...","...","...","..."]}`.
-- `POST /api/admin?action=add-category` adds a Don't Copy Me category. JSON body: `{"category":"Pets","options":[{"name":"Dog","emoji":"🐶","weight":5},{"name":"Cat","emoji":"🐱","weight":5}]}`. Include 2–12 options; weights from 1–5 are optional.
-
-Example PowerShell usage (replace the deployment address and key locally):
-
-```powershell
-$headers = @{ Authorization = "Bearer YOUR_ADMIN_API_KEY" }
-Invoke-RestMethod "https://YOUR-DEPLOYMENT/api/admin?action=overview" -Headers $headers
-
-$prompt = @{
-  question = "When the group chat picks a movie"
-  botCaption = "We watched the trailers until sunrise"
-  captions = @("The snacks got more screen time", "We picked a movie by committee", "I fell asleep during the opening logos", "The remote is the real main character", "We will finish choosing by next weekend")
-} | ConvertTo-Json -Depth 5
-Invoke-RestMethod -Method Post -Uri "https://YOUR-DEPLOYMENT/api/admin?action=add-prompt" -Headers $headers -ContentType "application/json" -Body $prompt
+```bash
+npm install
+npm start
 ```
 
-New content is saved in Redis and loaded into newly started matches. Existing matches keep the content they started with.
+Open [http://localhost:3000](http://localhost:3000) on the host computer. To play with friends on the same Wi-Fi, use the **Same-Wi-Fi invite** address printed in the terminal. If Windows asks, allow Node.js through the firewall on private networks.
 
-After joining or creating a room, its code is added to the URL history. Browser Back returns to the home screen and leaves the room; Forward rejoins it while the room is still active.
+Local mode stores rooms in memory, so players should share the same running server. Redis is needed for the hosted Vercel deployment, where room state must be shared across serverless function instances.
 
-## Multiplayer playtest checklist
+## Deploy to Vercel
 
-Use at least three phones if possible; four players gives a better test of the caption vote. Check room creation and joining, host start, selecting one of five captions, voting, scoring, the expanded Don't Copy Me categories, reconnecting after briefly turning Wi-Fi off, and host transfer after the host closes the tab. For a two-player check, confirm a bot caption appears in Caption rounds.
+The app uses Vercel Functions for real-time Socket.IO connections and the admin API, with Upstash Redis for shared game rooms, analytics, and custom content.
 
-Without `REDIS_URL`, local room state is in memory and restarting the server clears active rooms. On Vercel, Redis keeps active rooms consistent across function instances and connection reconnects.
+1. Push this repository to GitHub and import it as a project in Vercel.
+2. Keep the project root at the repository root. Select **Other** if asked for a framework preset. The included `vercel.json` configures the static site and API functions; no separate build command is required.
+3. Create or connect an Upstash Redis database. Copy its **TCP** connection string (`rediss://...`) and add it to Vercel as `REDIS_URL`.
+4. Create a long random secret for the admin dashboard and add it as `ADMIN_API_KEY`.
+5. Apply the variables to **Production**. Add **Preview** too if you plan to use admin tools on preview deployments.
+6. Deploy or redeploy after saving the variables.
+7. Check `https://YOUR-DOMAIN/api/health`; a working deployment returns `{"ok":true,"game":"meme-machine"}`.
+
+Treat `REDIS_URL` and `ADMIN_API_KEY` as secrets. Keep them in Vercel’s Environment Variables, not in browser code or a public GitHub commit. Vercel applies environment variable changes to new deployments, so redeploy after adding or updating them.
+
+## Admin dashboard
+
+Open `https://YOUR-DOMAIN/admin/` and sign in with the `ADMIN_API_KEY` configured in Vercel. The dashboard provides:
+
+- Active browser sessions seen in the last 60 seconds
+- Aggregate visitor, room, match, caption, vote, and category-pick counts
+- A recent activity feed that does not show player names
+- Forms to add caption setups and “Don’t Copy Me” categories
+
+The dashboard keeps the key in page memory only and clears it when you sign out or close the page. Custom prompts and categories are saved to Redis and join the built-in content in **new matches**; matches already in progress keep their original content.
+
+The protected API is available at `/api/admin`:
+
+| Request | Purpose |
+| --- | --- |
+| `GET /api/admin?action=overview` | Current sessions and aggregate game activity |
+| `GET /api/admin?action=content` | Custom prompts and categories |
+| `POST /api/admin?action=add-prompt` | Add a prompt with five caption choices |
+| `POST /api/admin?action=add-category` | Add a themed category with 2–12 choices |
+
+API requests require `Authorization: Bearer ADMIN_API_KEY`. The dashboard handles this automatically, so you do not need to use the command line to manage game content.
+
+## Built with
+
+- **Frontend:** HTML, CSS, and browser JavaScript
+- **Real-time multiplayer:** Socket.IO and WebSockets
+- **Server:** Node.js and Express
+- **Shared state and activity data:** Upstash Redis
+- **Hosting:** Vercel Functions and static deployment
+
+## Project layout
+
+```text
+api/
+  admin.js          Protected analytics and content API
+  health.js         Deployment health check
+  socket-io.js      Real-time game function
+public/
+  admin/index.html  Admin dashboard
+  index.html        Player-facing game
+socket-server.cjs   Game rules, room state, and Socket.IO events
+vercel.json         Vercel function and output settings
+```
+
+## Contributing and feedback
+
+Play a match with friends, then [open an issue](https://github.com/Charan3047/Meme_Machine/issues) with a bug report or idea for new prompts, categories, and game modes.

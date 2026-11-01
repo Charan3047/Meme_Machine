@@ -39,7 +39,8 @@ Caption Clash includes **47 built-in setups**, each with five ready-made answers
 - **Short matches:** Pick 4, 6, or 8 rounds.
 - **Works with two:** A bot caption keeps caption voting lively in a two-player match.
 - **Reconnect support:** Players can reconnect to an active room, and host rights can move to another player.
-- **Admin tools:** View aggregate usage, follow recent activity, and add game content from a private dashboard.
+- **Post-match feedback:** Players can leave an optional rating and comment at the end of a match.
+- **Admin tools:** View aggregate usage, follow recent activity, review feedback, and add game content from a private dashboard.
 
 ## Run Meme Machine locally
 
@@ -73,7 +74,6 @@ The app uses Vercel Functions for real-time Socket.IO connections and the admin 
 
 Treat `REDIS_URL`  as secret. Keep them in Vercel’s Environment Variables, not in browser code or a public GitHub commit. Vercel applies environment variable changes to new deployments, so redeploy after adding or updating them.
 
-
 ## Built with
 
 - **Frontend:** HTML, CSS, and browser JavaScript
@@ -87,8 +87,11 @@ Treat `REDIS_URL`  as secret. Keep them in Vercel’s Environment Variables, not
 ```text
 api/
   admin.js          Protected analytics and content API
+  feedback.js       End-of-match feedback API
   health.js         Deployment health check
   socket-io.js      Real-time game function
+lib/
+  feedback.cjs      Feedback validation and storage handler
 public/
   index.html        Player-facing game
 socket-server.cjs   Game rules, room state, and Socket.IO events

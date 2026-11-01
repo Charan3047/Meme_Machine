@@ -16,9 +16,13 @@ if (redisUrl) {
   io.adapter(createAdapter(pub, sub));
 }
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '4kb' }));
 // Local fallback for the static homepage; Vercel serves public/ through its CDN.
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/api/health', (_req, res) => res.json({ ok: true, game: 'meme-machine' }));
+const localFeedback = [];
+const { createFeedbackHandler } = require('./lib/feedback.cjs');
+app.post('/api/feedback', createFeedbackHandler(stateRedis, localFeedback));
 
 const R = {}; // hot room cache; Redis is authoritative when REDIS_URL is configured
 const roomKey = code => `meme-machine:room:${code}`;

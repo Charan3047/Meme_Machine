@@ -7,6 +7,7 @@ const CONTENT_KEY = 'meme-machine:custom-content';
 const METRICS_KEY = 'meme-machine:metrics';
 const ONLINE_KEY = 'meme-machine:online';
 const ACTIVITY_KEY = 'meme-machine:activity';
+const FEEDBACK_KEY = 'meme-machine:feedback';
 const BUILTIN_CATEGORIES = new Set(['Vegetables', 'Street food', 'Fruits', 'Phone apps', 'Animals', 'Sports', 'School stuff', 'Superpowers', 'Weekend plans', 'Movies', 'Travel', 'Space things', 'Kitchen items', 'Indian celebrations', 'Things that fly', 'Things at the beach', 'Weather', 'Music', 'Desserts', 'Gadgets', 'Jobs', 'Fashion', 'Breakfast', 'Transport', 'Internet', 'Indian landmarks', 'Mythical creatures', 'Birds', 'Chores', 'Party moments', 'In your backpack']);
 const PROFANITY = /\b(fuck|shit|bitch|asshole|bastard|cunt|slut|porn)\w*/gi;
 const redis = redisUrl ? new Redis(redisUrl, { maxRetriesPerRequest: 2, lazyConnect: true }) : null;
@@ -62,10 +63,15 @@ module.exports = async function admin(req, res) {
       return send(res, 200, {
         activeVisitorsLast60Seconds: Number(activeVisitors),
         totals: Object.fromEntries(Object.entries(metrics).map(([key, value]) => [key, Number(value)])),
-        trackedActivities: ['uniqueVisitors', 'roomsCreated', 'playersJoined', 'matchesStarted', 'captionPicks', 'votes', 'dontCopyPicks', 'matchesCompleted'],
+        trackedActivities: ['uniqueVisitors', 'roomsCreated', 'playersJoined', 'matchesStarted', 'captionPicks', 'votes', 'dontCopyPicks', 'matchesCompleted', 'feedbackSubmitted'],
         recentActivity: activityRows.map(row => JSON.parse(row)),
         updatedAt: new Date(now).toISOString()
       });
+    }
+
+    if (req.method === 'GET' && action === 'feedback') {
+      const entries = await redis.lrange(FEEDBACK_KEY, 0, 99);
+      return send(res, 200, { feedback: entries.map(entry => JSON.parse(entry)) });
     }
 
     if (req.method === 'GET' && action === 'content') {

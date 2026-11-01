@@ -74,6 +74,7 @@ em{font-style:normal;font-weight:800;border:2px solid var(--ink);border-radius:9
 .pos{background:var(--m)}.neg{background:var(--p)}
 .hit em{animation:sh .5s 2s}
 .pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
+.stars{display:flex;justify-content:center;gap:7px;margin:8px 0}.star{font:inherit;font-size:30px;line-height:1;background:#f2efff;border:2px solid var(--ink);border-radius:11px;padding:3px 8px;cursor:pointer}.star.on{background:var(--y)}.feedback textarea{min-height:88px;resize:vertical}.feedback-note{font-size:14px;opacity:.72}
 @keyframes pop{from{transform:scale(.6) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes sh{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center}
@@ -89,7 +90,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const AV=['😎','🤪','👻','🦊','🐼','🦄','🤖','🐸','🔥','👽','🐯','🧋'],ls=localStorage;
 const ME=ls.cc_id||(ls.cc_id=Math.random().toString(36).slice(2,12));
 let S=null,av=ls.cc_a||AV[0],nm=ls.cc_n||'',rc=(new URLSearchParams(location.search).get('room')||'').toUpperCase().slice(0,4);
-let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1',phaseFallback=null;
+let sel=-1,pk='',lastKey='',AC,mute=ls.m==='1',phaseFallback=null,feedbackRating=0,feedbackSent=false,feedbackBusy=false;
 const so=io(location.origin,{path:'/api/socket-io',addTrailingSlash:false,transports:['websocket']}),who=()=>({id:ME,n:nm||'Player',a:av});
 const priorHistoryState=history.state&&typeof history.state==='object'?history.state:{};
 history.replaceState({...priorHistoryState,memeMachineView:'home'},'',location.href);
@@ -151,6 +152,14 @@ function cfg(n){so.emit('cfg',n)}
 function capChoice(i){if(S.ph!=='write'||S.mineCap!==undefined)return;sel=i;so.emit('cap',i);draw()}
 function vote(k){sel=k;so.emit('vote',k);draw()}
 function pick(i){pk=S.opts[i].n;so.emit('pick',pk);draw()}
+function setFeedbackRating(n){feedbackRating=n;draw()}
+async function sendFeedback(e){
+ e.preventDefault();if(feedbackBusy||feedbackSent)return;
+ const message=$('feedbackMessage').value.trim();if(!feedbackRating&&!message)return flash('Choose a rating or add a short comment.');
+ feedbackBusy=true;const button=$('feedbackSubmit');button.disabled=true;button.textContent='Sending…';
+ try{const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rating:feedbackRating,message})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Could not send feedback.');feedbackSent=true;flash('Thanks for helping us improve!');draw()}
+ catch(error){flash(error.message);button.disabled=false;button.textContent='Send feedback'}finally{feedbackBusy=false}
+}
 function mut(){mute=!mute;ls.m=mute?'1':'0';draw()}
 function inv(){navigator.clipboard.writeText(location.origin+location.pathname+'?room='+S.code).then(()=>flash('Invite link copied'))}
 function share(){const o=[...S.pl].sort((a,b)=>b.s-a.s),m=S.pl.find(p=>p.id===ME)||{},t=`${o[0].a} ${o[0].n} won Meme Machine with ${o[0].s} points! I scored ${m.s}. ${location.origin}`;navigator.share?navigator.share({text:t}).catch(()=>{}):navigator.clipboard.writeText(t).then(()=>flash('Result copied'))}
@@ -159,6 +168,7 @@ function howToPlay(){return `<details class="c how-to" id="how-to"><summary>How 
 /* ---------- sound cues on phase change ---------- */
 function onPhase(){
  const k=S.round+S.ph;if(k===lastKey)return;lastKey=k;sel=-1;pk='';
+ if(S.ph==='final'){feedbackRating=0;feedbackSent=false;feedbackBusy=false}
  if(S.ph==='results'){SND.drum();setTimeout(result,1200)}else if(S.ph==='final')SND.win();
 }
 function schedulePhaseFallback(s){
@@ -231,7 +241,9 @@ function game(){
   }
  }else if(ph==='final'){
   const o=[...S.pl].sort((a,b)=>b.s-a.s),m=['🥇','🥈','🥉'];
-  h+=`<h1 class="logo"><img src="/mascot.png" alt=""><span>Game<br>over</span></h1><div class="c ctr pop"><div class="big">🏆 ${o[0].a} ${esc(o[0].n)}</div><p>wins with ${o[0].s} points</p></div><div class="c">${o.map((p,i)=>`<div class="row ${p.id===ME?'me':''}"><span>${m[i]||(i+1)+'.'} ${p.a} ${esc(p.n)}</span><b>${p.s}</b></div>`).join('')}</div><button class="b blue" onclick="share()">Share result</button>`+(host?`<button class="b" onclick="so.emit('again')">Play again</button>`:`<p class="ctr" style="color:#fff">Waiting for the host to start a rematch…</p>`);
+  h+=`<h1 class="logo"><img src="/mascot.png" alt=""><span>Game<br>over</span></h1><div class="c ctr pop"><div class="big">🏆 ${o[0].a} ${esc(o[0].n)}</div><p>wins with ${o[0].s} points</p></div><div class="c">${o.map((p,i)=>`<div class="row ${p.id===ME?'me':''}"><span>${m[i]||(i+1)+'.'} ${p.a} ${esc(p.n)}</span><b>${p.s}</b></div>`).join('')}</div>`+
+   (feedbackSent?`<div class="c ctr"><div class="big">💜</div><b>Thanks for your feedback!</b><p><small>It helps us make the next game better.</small></p></div>`:`<form class="c feedback" onsubmit="sendFeedback(event)"><b>How was the game?</b><p class="feedback-note">Your feedback helps us make the next match more fun. (Optional)</p><div class="stars" role="group" aria-label="Rate this game">${[1,2,3,4,5].map(n=>`<button class="star ${feedbackRating>=n?'on':''}" type="button" onclick="setFeedbackRating(${n})" aria-label="${n} out of 5 stars" aria-pressed="${feedbackRating===n}">${feedbackRating>=n?'★':'☆'}</button>`).join('')}</div><label for="feedbackMessage"><small>Anything we should improve?</small></label><textarea id="feedbackMessage" maxlength="600" placeholder="Tell us what you enjoyed or what got stuck…"></textarea><button class="b" id="feedbackSubmit" type="submit" ${feedbackBusy?'disabled':''}>Send feedback</button></form>`)+
+   `<button class="b blue" onclick="share()">Share result</button>`+(host?`<button class="b" onclick="so.emit('again')">Play again</button>`:`<p class="ctr" style="color:#fff">Waiting for the host to start a rematch…</p>`);
  }
  return h;
 }

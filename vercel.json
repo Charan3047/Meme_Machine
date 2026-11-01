@@ -8,6 +8,9 @@
     },
     "api/admin.js": {
       "maxDuration": 30
+    },
+    "api/feedback.js": {
+      "maxDuration": 30
     }
   }
 }

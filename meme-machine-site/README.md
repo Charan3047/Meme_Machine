@@ -2,6 +2,8 @@
 
 A standalone, responsive landing page for introducing Meme Machine, explaining the two game modes, and sending visitors to the live game. It uses plain HTML, CSS, and browser JavaScript; no build step or package installation is needed.
 
+The site includes a persistent light/dark theme toggle and an optional feedback form. Feedback opens a prefilled public GitHub issue draft; visitors review and submit it themselves.
+
 ## Public pages and routes
 
 - `/` — promotional home page

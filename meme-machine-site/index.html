@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#5b3df5">
   <meta name="description" content="Bring your group chat to life with Meme Machine: a free, real-time party game for 2–8 friends. Pick hilarious captions, dodge the crowd, and play from any phone or computer.">
   <meta name="robots" content="index, follow, max-image-preview:large">
+  <script>try{const saved=localStorage.getItem('mm-theme');document.documentElement.dataset.theme=saved||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{document.documentElement.dataset.theme='light'}</script>
   <title>Meme Machine — The Party Game for Your Group Chat</title>
   <meta property="og:type" content="website">
   <meta property="og:title" content="Meme Machine — Be Funny. Beat the Machine.">
@@ -21,6 +22,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme.css">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -49,6 +51,7 @@
       <a href="#how-to-play">How to play</a>
       <a href="#faq">FAQ</a>
       <a href="/about">About</a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme"><span class="theme-toggle-icon" aria-hidden="true">☾</span><span>Dark mode</span></button>
       <a class="nav-cta" href="https://memeachine.vercel.app/" target="_blank" rel="noopener">Play now <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
@@ -135,6 +138,16 @@
       <a class="button button-dark" href="https://memeachine.vercel.app/" target="_blank" rel="noopener">Play Meme Machine <span aria-hidden="true">↗</span></a>
       <button class="share-button" id="share-button" type="button">Share this game <span aria-hidden="true">↗</span></button>
     </section>
+  <section class="feedback-section section-wrap" id="feedback">
+    <div class="feedback-intro"><div class="eyebrow eyebrow-purple">HELP MAKE THE NEXT VERSION BETTER</div><h2>Got a thought<br>for the machine?</h2><p>Tell us what worked, what felt confusing, or what you’d like to see next. A rating or short note is plenty.</p></div>
+    <form class="feedback-form" id="website-feedback-form">
+      <fieldset><legend>How was your visit? <span>(optional)</span></legend><div class="rating-options" role="radiogroup" aria-label="Rate the website"><label class="rating-option"><input type="radio" name="rating" value="1"><span aria-hidden="true">★</span><span class="sr-only">1 out of 5</span></label><label class="rating-option"><input type="radio" name="rating" value="2"><span aria-hidden="true">★</span><span class="sr-only">2 out of 5</span></label><label class="rating-option"><input type="radio" name="rating" value="3"><span aria-hidden="true">★</span><span class="sr-only">3 out of 5</span></label><label class="rating-option"><input type="radio" name="rating" value="4"><span aria-hidden="true">★</span><span class="sr-only">4 out of 5</span></label><label class="rating-option"><input type="radio" name="rating" value="5"><span aria-hidden="true">★</span><span class="sr-only">5 out of 5</span></label></div></fieldset>
+      <label for="website-feedback-message">Anything you’d like us to know?</label><textarea id="website-feedback-message" name="message" maxlength="1000" placeholder="Share an idea, a bug, or a quick reaction…"></textarea>
+      <button class="button button-dark" type="submit">Continue to feedback form <span aria-hidden="true">↗</span></button>
+      <p class="feedback-disclosure">This opens a prefilled public GitHub issue draft for you to review and submit. Please don’t include private or sensitive information.</p><p class="feedback-status" id="feedback-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
   </main>
 
   <footer class="site-footer">

@@ -8,6 +8,12 @@ html[data-theme="dark"] .eyebrow{color:#d2cdea}html[data-theme="dark"] .eyebrow-
 html[data-theme="dark"] .hero-lede,html[data-theme="dark"] .section-heading>p,html[data-theme="dark"] .mode-card>p,html[data-theme="dark"] .anywhere-copy>p,html[data-theme="dark"] .faq-list details p,html[data-theme="dark"] .final-cta>p{color:#b6b1c8}
 html[data-theme="dark"] .quick-facts,html[data-theme="dark"] .scroll-cue{color:#aaa5bf}html[data-theme="dark"] .quick-facts b{color:#f6f3ff}
 html[data-theme="dark"] .button-quiet{background:#201d31;border-color:#39344f;color:#f6f3ff}
+html[data-theme="dark"] .button-dark{background:#302b46;color:#fff;box-shadow:0 5px 0 #090812}
+html[data-theme="dark"] .button-light{background:#ffd541;color:#1b1538;box-shadow:0 5px 0 #bd9411}
+html[data-theme="dark"] .nav-cta{background:#5b3df5;color:#fff}
+html[data-theme="dark"] .share-button{color:#b9adff}
+html[data-theme="dark"] .theme-toggle{background:#201d31;border-color:#39344f;color:#f6f3ff}
+html[data-theme="dark"] .theme-toggle:hover{border-color:#8e7cf7;color:#d8d0ff}
 html[data-theme="dark"] .caption-card{background:#1a1828;border-color:#302c43}html[data-theme="dark"] .copy-card{background:#211d39}
 html[data-theme="dark"] .caption-preview{background:#242137}html[data-theme="dark"] .preview-choice,html[data-theme="dark"] .copy-card .choice-preview{background:#191725;color:#f6f3ff}
 html[data-theme="dark"] .preview-label,html[data-theme="dark"] .mode-number{color:#aaa5bf}
